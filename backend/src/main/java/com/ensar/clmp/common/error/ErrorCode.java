@@ -11,7 +11,11 @@ public enum ErrorCode {
     UNAUTHENTICATED(HttpStatus.UNAUTHORIZED, "Authentication required"),
     INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "Invalid credentials"),
     NOT_AUTHORIZED(HttpStatus.FORBIDDEN, "Not authorized"),
-    NOT_FOUND(HttpStatus.NOT_FOUND, "Not found");
+    NOT_FOUND(HttpStatus.NOT_FOUND, "Not found"),
+    CONCURRENT_MODIFICATION(HttpStatus.CONFLICT, "Record changed"),
+    DUPLICATE_EMAIL(HttpStatus.CONFLICT, "Duplicate email"),
+    INVALID_TRANSITION(HttpStatus.UNPROCESSABLE_CONTENT, "Invalid transition"),
+    READINESS_INCOMPLETE(HttpStatus.UNPROCESSABLE_CONTENT, "Readiness incomplete");
 
     private final HttpStatus status;
     private final String title;

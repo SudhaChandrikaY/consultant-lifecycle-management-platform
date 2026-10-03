@@ -14,6 +14,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.annotation.DirtiesContext;
@@ -27,11 +28,13 @@ import tools.jackson.databind.ObjectMapper;
 
 /**
  * Base for integration tests: full context, MockMvc, the dev seed, and a private in-memory
- * database per test class so state never leaks between classes.
+ * database per test class so state never leaks between classes. The clock is fixed at
+ * {@link FixedClockConfig#NOW}.
  */
 @SpringBootTest(properties = "spring.datasource.url=jdbc:h2:mem:it-${random.uuid}")
 @AutoConfigureMockMvc
 @ActiveProfiles("dev")
+@Import(FixedClockConfig.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public abstract class IntegrationTestBase {
 

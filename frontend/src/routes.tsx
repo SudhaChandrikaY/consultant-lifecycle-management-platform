@@ -4,6 +4,9 @@ import type { Role } from './api/types';
 import { ROUTE_ROLES } from './auth/permissions';
 import RequireRole from './auth/RequireRole';
 import PageLayout from './components/PageLayout';
+import ConsultantDetailPage from './pages/consultants/ConsultantDetailPage';
+import ConsultantFormPage from './pages/consultants/ConsultantFormPage';
+import ConsultantListPage from './pages/consultants/ConsultantListPage';
 import DashboardPage from './pages/dashboard/DashboardPage';
 import LoginPage from './pages/login/LoginPage';
 import NotFound from './pages/NotFound';
@@ -30,14 +33,10 @@ export const APP_ROUTES: AppRoute[] = [
   { path: '/recruiters/new', roles: ROUTE_ROLES.admin, element: <Placeholder title="New recruiter" /> },
   { path: '/recruiters/:id/edit', roles: ROUTE_ROLES.admin, element: <Placeholder title="Edit recruiter" /> },
   { path: '/recruiters/:id', roles: ROUTE_ROLES.adminManager, element: <Placeholder title="Recruiter" /> },
-  { path: '/consultants', roles: ROUTE_ROLES.all, element: <Placeholder title="Consultants" /> },
-  { path: '/consultants/new', roles: ROUTE_ROLES.consultantEditors, element: <Placeholder title="New consultant" /> },
-  {
-    path: '/consultants/:id/edit',
-    roles: ROUTE_ROLES.consultantEditors,
-    element: <Placeholder title="Edit consultant" />,
-  },
-  { path: '/consultants/:id', roles: ROUTE_ROLES.all, element: <Placeholder title="Consultant" /> },
+  { path: '/consultants', roles: ROUTE_ROLES.all, element: <ConsultantListPage /> },
+  { path: '/consultants/new', roles: ROUTE_ROLES.consultantEditors, element: <ConsultantFormPage /> },
+  { path: '/consultants/:id/edit', roles: ROUTE_ROLES.consultantEditors, element: <ConsultantFormPage /> },
+  { path: '/consultants/:id', roles: ROUTE_ROLES.all, element: <ConsultantDetailPage /> },
   { path: '/marketing', roles: ROUTE_ROLES.commercial, element: <Placeholder title="Marketing" /> },
   { path: '/marketing/new', roles: ROUTE_ROLES.marketingCreators, element: <Placeholder title="New marketing" /> },
   { path: '/marketing/:id', roles: ROUTE_ROLES.commercial, element: <Placeholder title="Marketing assignment" /> },

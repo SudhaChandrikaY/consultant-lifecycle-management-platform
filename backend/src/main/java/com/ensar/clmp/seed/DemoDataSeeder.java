@@ -15,15 +15,24 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.ensar.clmp.auth.CurrentUser;
 import com.ensar.clmp.auth.domain.AppUser;
 import com.ensar.clmp.auth.domain.AppUserRepository;
 import com.ensar.clmp.auth.domain.Role;
+import com.ensar.clmp.consultant.domain.Consultant;
+import com.ensar.clmp.consultant.domain.ConsultantRepository;
+import com.ensar.clmp.consultant.domain.ConsultantStatus;
+import com.ensar.clmp.consultant.service.ConsultantService;
+import com.ensar.clmp.consultant.web.ConsultantRequest;
+import com.ensar.clmp.history.service.HistoryService;
+import com.ensar.clmp.lifecycle.ConsultantLifecycleService;
 import com.ensar.clmp.recruiter.domain.Recruiter;
 import com.ensar.clmp.recruiter.domain.RecruiterRepository;
 import com.ensar.clmp.reference.domain.Region;
 import com.ensar.clmp.reference.domain.RegionRepository;
 import com.ensar.clmp.reference.domain.Team;
 import com.ensar.clmp.reference.domain.TeamRepository;
+import com.ensar.clmp.reference.domain.VisaType;
 
 /**
  * Seeds demo reference data, users, and workflow records for the {@code dev} profile (research
@@ -46,10 +55,15 @@ public class DemoDataSeeder implements ApplicationRunner {
     private final RegionRepository regions;
     private final AppUserRepository users;
     private final RecruiterRepository recruiters;
+    private final ConsultantRepository consultants;
+    private final ConsultantService consultantService;
+    private final ConsultantLifecycleService lifecycle;
+    private final HistoryService history;
 
     public DemoDataSeeder(Environment environment, PasswordEncoder passwordEncoder, Clock clock,
             TeamRepository teams, RegionRepository regions, AppUserRepository users,
-            RecruiterRepository recruiters) {
+            RecruiterRepository recruiters, ConsultantRepository consultants, ConsultantService consultantService,
+            ConsultantLifecycleService lifecycle, HistoryService history) {
         this.environment = environment;
         this.passwordEncoder = passwordEncoder;
         this.clock = clock;
@@ -57,6 +71,10 @@ public class DemoDataSeeder implements ApplicationRunner {
         this.regions = regions;
         this.users = users;
         this.recruiters = recruiters;
+        this.consultants = consultants;
+        this.consultantService = consultantService;
+        this.lifecycle = lifecycle;
+        this.history = history;
     }
 
     @Override
@@ -71,6 +89,7 @@ public class DemoDataSeeder implements ApplicationRunner {
         }
         seedReference();
         seedUsersAndRecruiters();
+        seedConsultants();
         log.info("Demo data seeded.");
     }
 
@@ -104,6 +123,82 @@ public class DemoDataSeeder implements ApplicationRunner {
                 region("WEST"), null, now));
         recruiters.save(new Recruiter("Daniel Kim", "daniel.kim@clmp.example", "555-0104", team("DEVOPS"),
                 region("OFFSHORE"), null, now));
+    }
+
+    /**
+     * About a dozen consultants across Bench, Ready, Hold, and Inactive with complete and
+     * incomplete profiles. Arun Kumar is a complete Bench consultant assigned to Riya Patel (AS 2.3
+     * demo); Ana Souza is assigned to an unlinked recruiter.
+     */
+    private void seedConsultants() {
+        Long riya = recruiterId("Riya Patel");
+        Long marcus = recruiterId("Marcus Lee");
+        Long priya = recruiterId("Priya Shah");
+        Long daniel = recruiterId("Daniel Kim");
+
+        consultant("Arun", "Kumar", "Java", 8, VisaType.H1B, riya, ConsultantStatus.BENCH, null);
+        consultant("Meera", "Iyer", "Java", 6, VisaType.GREEN_CARD, riya, ConsultantStatus.READY, null);
+        consultant("Vikram", "Rao", "Spring Boot", 10, VisaType.H1B, riya, ConsultantStatus.READY, null);
+        consultant("Sofia", "Martinez", "Java", 5, VisaType.US_CITIZEN, riya, ConsultantStatus.READY, null);
+        consultant("Kevin", "Obrien", "Microservices", 7, VisaType.US_CITIZEN, riya, ConsultantStatus.HOLD,
+                "Personal leave until next month");
+        consultant("Li", "Wei", "Python", 4, VisaType.STEM_OPT, marcus, ConsultantStatus.READY, null);
+        consultant("Fatima", "Noor", "Data Engineering", 9, VisaType.H4_EAD, marcus, ConsultantStatus.BENCH, null);
+        consultant("Jonas", "Berg", "Spark", 12, VisaType.GREEN_CARD, marcus, ConsultantStatus.INACTIVE,
+                "Accepted a full-time role elsewhere");
+        consultant("Ana", "Souza", ".NET", 6, VisaType.L2_EAD, priya, ConsultantStatus.READY, null);
+        consultant("Tom", "Becker", "Kubernetes", 3, VisaType.TN, daniel, ConsultantStatus.BENCH, null);
+
+        // Incomplete profiles (missing phone, skill, experience, visa, and recruiter).
+        create(new ConsultantRequest("Grace", "Lin", "grace.lin@consultants.example", null, null, null, null,
+                null, null, null, null, null, null));
+        create(new ConsultantRequest("Omar", "Haddad", "omar.haddad@consultants.example", "555-0312", "Dallas",
+                "TX", "React", null, 5, null, null, null, null));
+    }
+
+    private Long consultant(String first, String last, String skill, int years, VisaType visa, Long recruiterId,
+            ConsultantStatus target, String reason) {
+        String email = (first + "." + last).toLowerCase() + "@consultants.example";
+        Long id = create(new ConsultantRequest(first, last, email, "555-02" + String.format("%02d", consultants.count()),
+                "Edison", "NJ", skill, "SQL, Git", years, visa, null, "Seeded demo consultant", null));
+        assign(id, recruiterId);
+        if (target == ConsultantStatus.HOLD || target == ConsultantStatus.INACTIVE) {
+            setStatus(id, ConsultantStatus.READY, null);
+        }
+        if (target != ConsultantStatus.BENCH) {
+            setStatus(id, target, reason);
+        }
+        return id;
+    }
+
+    private Long create(ConsultantRequest request) {
+        return consultantService.create(request, actor("hr")).id();
+    }
+
+    /** Direct assignment with history until US3 adds the assignment service. */
+    private void assign(Long consultantId, Long recruiterId) {
+        Consultant consultant = consultants.findById(consultantId).orElseThrow();
+        Recruiter recruiter = recruiters.findById(recruiterId).orElseThrow();
+        consultant.assignRecruiter(recruiter, clock.instant());
+        history.recordRecruiterAssignment(consultantId, null, recruiter.getFullName(), actor("admin"));
+        consultants.flush();
+    }
+
+    private void setStatus(Long consultantId, ConsultantStatus target, String reason) {
+        long version = consultants.findById(consultantId).orElseThrow().getVersion();
+        lifecycle.changeStatusManually(consultantId, target, reason, version, actor("hr"));
+        consultants.flush();
+    }
+
+    private CurrentUser actor(String username) {
+        AppUser user = users.findByUsernameIgnoreCase(username).orElseThrow();
+        Long recruiterId = recruiters.findByUserId(user.getId()).map(Recruiter::getId).orElse(null);
+        return new CurrentUser(user.getId(), user.getUsername(), user.getDisplayName(), user.getRole(), recruiterId);
+    }
+
+    private Long recruiterId(String fullName) {
+        return recruiters.findAll().stream().filter(r -> r.getFullName().equals(fullName)).findFirst()
+                .orElseThrow().getId();
     }
 
     private Team team(String code) {

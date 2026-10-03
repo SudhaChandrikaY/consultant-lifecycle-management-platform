@@ -9,6 +9,7 @@ import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
@@ -52,6 +53,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     ResponseEntity<ProblemDetail> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
         return validation(List.of(new FieldErrorItem(ex.getName(), "Invalid value.")));
+    }
+
+    /** A JPA {@code @Version} conflict that slipped past the explicit VersionGuard check. */
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    ResponseEntity<ProblemDetail> handleOptimisticLock(ObjectOptimisticLockingFailureException ex) {
+        ProblemDetail problem = Problems.of(ErrorCode.CONCURRENT_MODIFICATION,
+                "This record was changed by someone else. Reload to continue.");
+        return ResponseEntity.status(ErrorCode.CONCURRENT_MODIFICATION.status()).body(problem);
     }
 
     @ExceptionHandler(AccessDeniedException.class)

@@ -206,7 +206,7 @@ unlinked-recruiter empty state.
 
 ### Tests for User Story 2
 
-- [ ] T035 [P] [US2] Write `backend/src/test/java/com/ensar/clmp/lifecycle/ConsultantManualTransitionTest.java`, a unit test with mocked repositories and HistoryService. It covers every allowed FR-031 transition, and refusal of everything else with `INVALID_TRANSITION` plus `allowedTransitions`:
+- [X] T035 [P] [US2] Write `backend/src/test/java/com/ensar/clmp/lifecycle/ConsultantManualTransitionTest.java`, a unit test with mocked repositories and HistoryService. It covers every allowed FR-031 transition, and refusal of everything else with `INVALID_TRANSITION` plus `allowedTransitions`:
   - BENCH→READY
   - READY→BENCH
   - BENCH/READY/MARKETING/INTERVIEWING→HOLD, reason required
@@ -218,8 +218,8 @@ unlinked-recruiter empty state.
   It asserts MARKETING, INTERVIEWING, and PLACED can never be targets of a manual change
   (FR-032). It also checks that MANAGER and RECRUITER callers get `NOT_AUTHORIZED`. Placement and
   marketing guards are added in US4–US6.
-- [ ] T036 [P] [US2] Write `backend/src/test/java/com/ensar/clmp/consultant/ReadinessCheckerTest.java`. It asserts the `missingItems` keys `firstName, lastName, email, phone, primarySkill, yearsExperience, visaType, assignedActiveRecruiter`, and that an assigned but INACTIVE recruiter counts as missing (FR-035).
-- [ ] T037 [P] [US2] Write `backend/src/test/java/com/ensar/clmp/it/US2ConsultantProfileIT.java`:
+- [X] T036 [P] [US2] Write `backend/src/test/java/com/ensar/clmp/consultant/ReadinessCheckerTest.java`. It asserts the `missingItems` keys `firstName, lastName, email, phone, primarySkill, yearsExperience, visaType, assignedActiveRecruiter`, and that an assigned but INACTIVE recruiter counts as missing (FR-035).
+- [X] T037 [P] [US2] Write `backend/src/test/java/com/ensar/clmp/it/US2ConsultantProfileIT.java`:
   - AS 2.1: hr POST with only first name, last name, and email returns 201 with status BENCH.
   - AS 2.2: marking Ready returns 422 `READINESS_INCOMPLETE` with `missingItems`.
   - AS 2.3: on a complete profile with the seeded assignment, marking Ready returns 200, and the history has a STATUS row BENCH→READY with the hr display name and timestamp.
@@ -234,17 +234,17 @@ unlinked-recruiter empty state.
   - Stale `version` on PUT returns 409 `CONCURRENT_MODIFICATION`.
   - A profile edit writes PROFILE_UPDATED with field names only and no values.
   - `size=101` returns 400.
-- [ ] T038 [P] [US2] Write `frontend/src/test/consultantForm.test.tsx`. It renders `ConsultantFormPage` with a mocked `client` that rejects with a 400 `VALIDATION_FAILED` problem, and asserts each `fieldErrors` message renders next to its field.
-- [ ] T039 [P] [US2] Write `frontend/src/test/unlinkedRecruiterEmptyState.test.tsx`. With an auth context of a RECRUITER whose `recruiterId` is null, render `DataTable` with zero rows and assert it shows "Your account is not linked to a recruiter profile. Contact an Admin.". For any other user, assert the generic empty message (spec edge case, ui-routes cross-cutting).
+- [X] T038 [P] [US2] Write `frontend/src/test/consultantForm.test.tsx`. It renders `ConsultantFormPage` with a mocked `client` that rejects with a 400 `VALIDATION_FAILED` problem, and asserts each `fieldErrors` message renders next to its field.
+- [X] T039 [P] [US2] Write `frontend/src/test/unlinkedRecruiterEmptyState.test.tsx`. With an auth context of a RECRUITER whose `recruiterId` is null, render `DataTable` with zero rows and assert it shows "Your account is not linked to a recruiter profile. Contact an Admin.". For any other user, assert the generic empty message (spec edge case, ui-routes cross-cutting).
 
 ### Shared pieces first consumed by US2
 
-- [ ] T040 [P] [US2] Create `backend/src/main/java/com/ensar/clmp/common/time/ClockConfig.java`, which exposes a `java.time.Clock` bean in the zone from `clmp.time-zone`, and `common/time/OrgTime.java`, a service with `today()`, `currentMonthStart()`, `currentMonthEnd()`, and `toOrgDate(Instant)` (research R15). In `backend/src/test/java/com/ensar/clmp/support/IntegrationTestBase.java`, add a `@TestConfiguration` that overrides `Clock` with a fixed instant `2026-10-15T15:00:00Z`.
-- [ ] T041 [P] [US2] Create `backend/src/main/java/com/ensar/clmp/common/web/PageResponse.java` (record `items, page, size, totalItems, totalPages`, with a `from(Page<T>)` factory) and `common/web/PageRequests.java`. `PageRequests` builds a `Pageable` from `page`/`size`/`sort` with default size 25 and maximum size 100. It accepts only `sort` fields from a per-list allowlist and returns `400 VALIDATION_FAILED` for anything else.
-- [ ] T042 [P] [US2] Create `backend/src/main/java/com/ensar/clmp/common/domain/Versioned.java` (an interface with `getVersion()`) and `common/service/VersionGuard.java` with `check(Versioned entity, long requestVersion)`. A mismatch throws `BusinessException(CONCURRENT_MODIFICATION)` with extra `currentVersion`. Add `CONCURRENT_MODIFICATION` 409 and `DUPLICATE_EMAIL` 409 to `ErrorCode`, and map `ObjectOptimisticLockingFailureException` → 409 `CONCURRENT_MODIFICATION` in `GlobalExceptionHandler.java` (research R10).
-- [ ] T043 [P] [US2] Create `backend/src/main/java/com/ensar/clmp/reference/domain/VisaType.java` (enum `US_CITIZEN, GREEN_CARD, H1B, H4_EAD, L2_EAD, OPT, STEM_OPT, CPT, TN, OTHER`, per FR-021).
-- [ ] T044 [P] [US2] Create `backend/src/main/java/com/ensar/clmp/history/domain/HistoryEntityType.java` (`CONSULTANT, RECRUITER, MARKETING_ASSIGNMENT, SUBMISSION, PLACEMENT`) and `history/domain/ChangeType.java` (`CREATED, STATUS, RECRUITER_ASSIGNMENT, OWNER_TRANSFER, PROFILE_UPDATED, FIELD_EDIT, NOTE_ADDED`).
-- [ ] T045 [US2] Create `backend/src/main/java/com/ensar/clmp/history/domain/HistoryRecord.java`, an immutable `@Entity history_record` with no setters after construction. Fields from data-model.md:
+- [X] T040 [P] [US2] Create `backend/src/main/java/com/ensar/clmp/common/time/ClockConfig.java`, which exposes a `java.time.Clock` bean in the zone from `clmp.time-zone`, and `common/time/OrgTime.java`, a service with `today()`, `currentMonthStart()`, `currentMonthEnd()`, and `toOrgDate(Instant)` (research R15). In `backend/src/test/java/com/ensar/clmp/support/IntegrationTestBase.java`, add a `@TestConfiguration` that overrides `Clock` with a fixed instant `2026-10-15T15:00:00Z`.
+- [X] T041 [P] [US2] Create `backend/src/main/java/com/ensar/clmp/common/web/PageResponse.java` (record `items, page, size, totalItems, totalPages`, with a `from(Page<T>)` factory) and `common/web/PageRequests.java`. `PageRequests` builds a `Pageable` from `page`/`size`/`sort` with default size 25 and maximum size 100. It accepts only `sort` fields from a per-list allowlist and returns `400 VALIDATION_FAILED` for anything else.
+- [X] T042 [P] [US2] Create `backend/src/main/java/com/ensar/clmp/common/domain/Versioned.java` (an interface with `getVersion()`) and `common/service/VersionGuard.java` with `check(Versioned entity, long requestVersion)`. A mismatch throws `BusinessException(CONCURRENT_MODIFICATION)` with extra `currentVersion`. Add `CONCURRENT_MODIFICATION` 409 and `DUPLICATE_EMAIL` 409 to `ErrorCode`, and map `ObjectOptimisticLockingFailureException` → 409 `CONCURRENT_MODIFICATION` in `GlobalExceptionHandler.java` (research R10).
+- [X] T043 [P] [US2] Create `backend/src/main/java/com/ensar/clmp/reference/domain/VisaType.java` (enum `US_CITIZEN, GREEN_CARD, H1B, H4_EAD, L2_EAD, OPT, STEM_OPT, CPT, TN, OTHER`, per FR-021).
+- [X] T044 [P] [US2] Create `backend/src/main/java/com/ensar/clmp/history/domain/HistoryEntityType.java` (`CONSULTANT, RECRUITER, MARKETING_ASSIGNMENT, SUBMISSION, PLACEMENT`) and `history/domain/ChangeType.java` (`CREATED, STATUS, RECRUITER_ASSIGNMENT, OWNER_TRANSFER, PROFILE_UPDATED, FIELD_EDIT, NOTE_ADDED`).
+- [X] T045 [US2] Create `backend/src/main/java/com/ensar/clmp/history/domain/HistoryRecord.java`, an immutable `@Entity history_record` with no setters after construction. Fields from data-model.md:
   - `entity_type`, `entity_id`
   - `consultant_id` nullable, `owner_recruiter_id` nullable
   - `change_type`
@@ -261,23 +261,23 @@ unlinked-recruiter empty state.
   `org.springframework.data.repository.Repository` (not JpaRepository), so it exposes only `save`
   and query methods, with no delete or update (FR-101). It also implements
   `JpaSpecificationExecutor<HistoryRecord>`.
-- [ ] T046 [US2] Create `backend/src/main/java/com/ensar/clmp/history/service/HistoryService.java`, the write API: `recordCreated`, `recordStatusChange(entityType, entityId, consultantId, ownerRecruiterId, old, new, reason, note, actor)`, `recordRecruiterAssignment`, `recordOwnerTransfer`, `recordProfileUpdated(consultantId, List<String> changedFieldNames, actor)` (field *names* only, never values), and `recordFieldEdit`. It is `@Transactional(propagation = MANDATORY)` so history is always written in the caller's transaction (FR-100), and timestamps come from the injected `Clock`.
-- [ ] T047 [US2] Create `backend/src/main/java/com/ensar/clmp/history/web/HistoryEntry.java`, a response record matching `contracts/rest-api.md` HistoryEntry: `id, occurredAt, actor, changeType, field, oldValue, newValue, reason, note, description`. The `systemTriggered` and `trigger` fields are added in US4. Also create `history/service/HistoryQueryService.java` with `forEntity(entityType, entityId, viewer, pageable)`, which renders a plain `description` per change type. The recent-activity feed is added in US7.
-- [ ] T048 [US2] Create `backend/src/main/java/com/ensar/clmp/reference/web/ReferenceController.java` and `reference/web/ReferenceResponse.java`: `GET /api/reference`, open to all authenticated roles, returning `{teams[{id,code,name}], regions[...], visaTypes[], consultantStatuses[]}`. US4 adds `marketingStatuses` and US5 adds `submissionStatuses`.
-- [ ] T049 [P] [US2] Create these frontend pieces:
+- [X] T046 [US2] Create `backend/src/main/java/com/ensar/clmp/history/service/HistoryService.java`, the write API: `recordCreated`, `recordStatusChange(entityType, entityId, consultantId, ownerRecruiterId, old, new, reason, note, actor)`, `recordRecruiterAssignment`, `recordOwnerTransfer`, `recordProfileUpdated(consultantId, List<String> changedFieldNames, actor)` (field *names* only, never values), and `recordFieldEdit`. It is `@Transactional(propagation = MANDATORY)` so history is always written in the caller's transaction (FR-100), and timestamps come from the injected `Clock`.
+- [X] T047 [US2] Create `backend/src/main/java/com/ensar/clmp/history/web/HistoryEntry.java`, a response record matching `contracts/rest-api.md` HistoryEntry: `id, occurredAt, actor, changeType, field, oldValue, newValue, reason, note, description`. The `systemTriggered` and `trigger` fields are added in US4. Also create `history/service/HistoryQueryService.java` with `forEntity(entityType, entityId, viewer, pageable)`, which renders a plain `description` per change type. The recent-activity feed is added in US7.
+- [X] T048 [US2] Create `backend/src/main/java/com/ensar/clmp/reference/web/ReferenceController.java` and `reference/web/ReferenceResponse.java`: `GET /api/reference`, open to all authenticated roles, returning `{teams[{id,code,name}], regions[...], visaTypes[], consultantStatuses[]}`. US4 adds `marketingStatuses` and US5 adds `submissionStatuses`.
+- [X] T049 [P] [US2] Create these frontend pieces:
   - `frontend/src/hooks/useApi.ts`: `{data, error, loading, reload}` for a loader function.
   - `frontend/src/hooks/useUrlFilters.ts`: reads and writes list filters and `page`/`sort` in the URL query string, supporting repeated keys such as `status=A&status=B`, so dashboard and report `link.query` strings open pre-filtered lists (FR-083).
   - `frontend/src/labels.ts`: display-label maps for `ConsultantStatus` and `VisaType`, extended per story. For example `H4_EAD` → "H-4 EAD".
-- [ ] T050 [P] [US2] Create shared list and detail components:
+- [X] T050 [P] [US2] Create shared list and detail components:
   - `frontend/src/components/DataTable.tsx`: column defs, server paging controls, sortable headers wired to `useUrlFilters`, and a row link. Its empty state uses `EmptyState`.
   - `frontend/src/components/EmptyState.tsx`: when the signed-in user is a RECRUITER with `recruiterId === null`, it renders "Your account is not linked to a recruiter profile. Contact an Admin." instead of the generic message.
   - `frontend/src/components/StatusBadge.tsx`
   - `frontend/src/components/HistoryList.tsx`: renders `HistoryEntry[]` with actor, time, old → new, reason/note, and description.
-- [ ] T051 [P] [US2] Create `frontend/src/components/FilterBar.tsx` and `frontend/src/components/ReasonDialog.tsx` (required reason textarea, with an optional `required` flag).
+- [X] T051 [P] [US2] Create `frontend/src/components/FilterBar.tsx` and `frontend/src/components/ReasonDialog.tsx` (required reason textarea, with an optional `required` flag).
 
 ### Implementation for User Story 2
 
-- [ ] T052 [P] [US2] Create `backend/src/main/java/com/ensar/clmp/consultant/domain/ConsultantStatus.java` (enum `BENCH, READY, MARKETING, INTERVIEWING, PLACED, ACTIVE_PROJECT, HOLD, INACTIVE`) and `consultant/domain/Consultant.java`, `@Entity consultant` with these fields, exactly as in data-model.md:
+- [X] T052 [P] [US2] Create `backend/src/main/java/com/ensar/clmp/consultant/domain/ConsultantStatus.java` (enum `BENCH, READY, MARKETING, INTERVIEWING, PLACED, ACTIVE_PROJECT, HOLD, INACTIVE`) and `consultant/domain/Consultant.java`, `@Entity consultant` with these fields, exactly as in data-model.md:
   - `first_name`, `last_name` String(60), required at creation
   - `email` String(254), required, valid email, unique case-insensitive (store and compare lower-cased)
   - `phone` String(30) optional
@@ -294,41 +294,41 @@ unlinked-recruiter empty state.
 
   Indexes on `status` and `current_recruiter_id`. NO SSN, DOB, bank, or ID-document fields
   (FR-027). No delete.
-- [ ] T053 [US2] Create `backend/src/main/java/com/ensar/clmp/consultant/domain/ConsultantRepository.java` with:
+- [X] T053 [US2] Create `backend/src/main/java/com/ensar/clmp/consultant/domain/ConsultantRepository.java` with:
   - `JpaSpecificationExecutor`
   - `existsByEmailIgnoreCaseAndIdNot`
   - `@Lock(PESSIMISTIC_WRITE) findByIdForUpdate(Long id)`
   - `countByStatus`, grouped
   - `findDistinctPrimarySkills`
   - `countByCurrentRecruiterIdIn`, grouped, used by the recruiter list in US3
-- [ ] T054 [P] [US2] Create `backend/src/main/java/com/ensar/clmp/consultant/service/ConsultantFilter.java` (record: `q, List<ConsultantStatus> statuses, primarySkill, visaType, recruiterId, Boolean needsReassignment`) and `consultant/service/ConsultantSpecifications.java`:
+- [X] T054 [P] [US2] Create `backend/src/main/java/com/ensar/clmp/consultant/service/ConsultantFilter.java` (record: `q, List<ConsultantStatus> statuses, primarySkill, visaType, recruiterId, Boolean needsReassignment`) and `consultant/service/ConsultantSpecifications.java`:
   - `q` matches case-insensitively on first, last, or full name.
   - `needsReassignment` = current recruiter not null AND recruiter.status = INACTIVE.
   - `scopeFor(CurrentUser)`: ADMIN, MANAGER, and HR see all. RECRUITER sees `current_recruiter_id = recruiterId`. A RECRUITER with no recruiterId matches nothing.
-- [ ] T055 [P] [US2] Create `backend/src/main/java/com/ensar/clmp/consultant/service/ConsultantAccessPolicy.java`:
+- [X] T055 [P] [US2] Create `backend/src/main/java/com/ensar/clmp/consultant/service/ConsultantAccessPolicy.java`:
   - `assertCanView`: ADMIN, MANAGER, HR, or the assigned RECRUITER.
   - `assertCanEditProfile`: ADMIN, HR.
   - `canSeeContact`: ADMIN, MANAGER, HR, or the assigned RECRUITER.
   - `canSeeCommercialSections`: not HR.
   - Refusals throw `AccessDeniedException`, which maps to 403 `NOT_AUTHORIZED`.
-- [ ] T056 [P] [US2] Create `backend/src/main/java/com/ensar/clmp/consultant/service/ReadinessChecker.java`, returning the ordered `List<String>` of missing items per FR-035 (keys as in T036).
-- [ ] T057 [US2] Create `backend/src/main/java/com/ensar/clmp/lifecycle/ConsultantLifecycleService.java`, the single owner of consultant status rules (research R9):
+- [X] T056 [P] [US2] Create `backend/src/main/java/com/ensar/clmp/consultant/service/ReadinessChecker.java`, returning the ordered `List<String>` of missing items per FR-035 (keys as in T036).
+- [X] T057 [US2] Create `backend/src/main/java/com/ensar/clmp/lifecycle/ConsultantLifecycleService.java`, the single owner of consultant status rules (research R9):
   - Implement `changeStatusManually(consultantId, target, reason, version, CurrentUser actor)` with the FR-031 transition table, the ADMIN/HR-only check, reason required for HOLD and INACTIVE (400 `VALIDATION_FAILED` on `reason`), and the readiness guard for →READY (422 `READINESS_INCOMPLETE` + `missingItems`). It uses `VersionGuard` and writes a STATUS history row with `reason`.
   - Implement `allowedManualTransitions(consultant, actor)`, which returns an empty list for MANAGER and RECRUITER.
   - Add `INVALID_TRANSITION` 422 and `READINESS_INCOMPLETE` 422 to `ErrorCode`.
   - Leave clearly named private hook methods `cascadeOnHold`, `cascadeOnInactive`, and `guardInactive` that US4/US5 fill in. They start as no-ops.
-- [ ] T058 [US2] Create the consultant DTOs in `backend/src/main/java/com/ensar/clmp/consultant/web/`:
+- [X] T058 [US2] Create the consultant DTOs in `backend/src/main/java/com/ensar/clmp/consultant/web/`:
   - `ConsultantRequest.java`: `firstName`/`lastName` `@NotBlank @Size(max=60)`, `email` `@NotBlank @Email @Size(max=254)`, `phone` `@Size(max=30)`, `city` `@Size(max=80)`, `state` `@Size(max=40)`, `primarySkill` `@Size(max=80)`, `additionalSkills` `@Size(max=500)`, `yearsExperience` `@Min(0) @Max(50)`, `visaType`, `visaExpirationDate`, `notes` `@Size(max=2000)`, `Long version` (required on PUT).
   - `ConsultantListItem.java`: `id, fullName, primarySkill, yearsExperience, visaType, assignedRecruiter{id,fullName}, status, needsReassignment`. NO contact fields.
   - `ConsultantDetail.java`, with `@JsonInclude(NON_NULL)`: profile fields, `status`, `needsReassignment`, `assignedRecruiter{id,fullName,status}`, `contact{email,phone,visaExpirationDate,notes}` (nullable), `allowedStatusTransitions`, `missingReadinessItems`, `version`. US4–US6 add `currentMarketingAssignment`, `submissions`, `placements`, and `openSubmissionsWhileOnHold`, which are always null for HR.
   - `StatusChangeRequest.java`: `targetStatus` `@NotNull`, `reason`, `version` `@NotNull`.
-- [ ] T059 [US2] Create `backend/src/main/java/com/ensar/clmp/consultant/service/ConsultantService.java`:
+- [X] T059 [US2] Create `backend/src/main/java/com/ensar/clmp/consultant/service/ConsultantService.java`:
   - `create`: status BENCH, email uniqueness → 409 `DUPLICATE_EMAIL` with `fieldErrors[email]`, history CREATED.
   - `update`: version check, uniqueness, history PROFILE_UPDATED with changed field *names* only.
   - `getDetail(id, actor)`: role-shaped through `ConsultantAccessPolicy`.
   - `list(filter, pageable, actor)`: specification plus scope, mapping to `ConsultantListItem` with a fetch join on the recruiter to avoid N+1.
   - `distinctSkills()`.
-- [ ] T060 [US2] Create `backend/src/main/java/com/ensar/clmp/consultant/web/ConsultantController.java`:
+- [X] T060 [US2] Create `backend/src/main/java/com/ensar/clmp/consultant/web/ConsultantController.java`:
   - `GET /api/consultants`: params `q, status (multi), primarySkill, visaType, recruiterId, needsReassignment, page, size, sort`, with sort allowlist `lastName, status, yearsExperience, primarySkill`. ADMIN, MANAGER, RECRUITER, HR.
   - `GET /api/consultants/{id}`
   - `POST /api/consultants`: ADMIN, HR.
@@ -336,21 +336,21 @@ unlinked-recruiter empty state.
   - `POST /api/consultants/{id}/status`: ADMIN, HR; delegates to `ConsultantLifecycleService`.
   - `GET /api/consultants/{id}/history`: through `HistoryQueryService`, after the view check.
   - `GET /api/consultants/skills`
-- [ ] T061 [US2] Extend `backend/src/main/java/com/ensar/clmp/seed/DemoDataSeeder.java` with `seedConsultants()`. It adds about 12 consultants across BENCH, READY, HOLD, and INACTIVE, with complete and incomplete profiles. Several are assigned directly to Riya Patel and Marcus Lee: at least one complete Bench consultant assigned to Riya, for AS 2.3, and one assigned to an unlinked recruiter.
-- [ ] T062 [P] [US2] Create `frontend/src/api/consultants.ts`, typed calls for every consultant endpoint in `contracts/rest-api.md`. Append `PageResponse<T>`, `HistoryEntry`, `ConsultantStatus`, `VisaType`, `ConsultantListItem`, `ConsultantDetail`, and `ConsultantRequest` to `frontend/src/api/types.ts`. Also create `frontend/src/api/reference.ts` (`GET /api/reference`, cached in module memory).
-- [ ] T063 [US2] Create `frontend/src/pages/consultants/ConsultantListPage.tsx`, using `DataTable` and `FilterBar` with search, status multi-select, skill, visa type, and recruiter, all driven by `useUrlFilters`.
+- [X] T061 [US2] Extend `backend/src/main/java/com/ensar/clmp/seed/DemoDataSeeder.java` with `seedConsultants()`. It adds about 12 consultants across BENCH, READY, HOLD, and INACTIVE, with complete and incomplete profiles. Several are assigned directly to Riya Patel and Marcus Lee: at least one complete Bench consultant assigned to Riya, for AS 2.3, and one assigned to an unlinked recruiter.
+- [X] T062 [P] [US2] Create `frontend/src/api/consultants.ts`, typed calls for every consultant endpoint in `contracts/rest-api.md`. Append `PageResponse<T>`, `HistoryEntry`, `ConsultantStatus`, `VisaType`, `ConsultantListItem`, `ConsultantDetail`, and `ConsultantRequest` to `frontend/src/api/types.ts`. Also create `frontend/src/api/reference.ts` (`GET /api/reference`, cached in module memory).
+- [X] T063 [US2] Create `frontend/src/pages/consultants/ConsultantListPage.tsx`, using `DataTable` and `FilterBar` with search, status multi-select, skill, visa type, and recruiter, all driven by `useUrlFilters`.
   - Columns: name, primary skill, years, visa type, assigned recruiter, `StatusBadge`, and a "Needs reassignment" badge.
   - No email or phone columns (FR-024).
   - An "Add consultant" button shown only when `canEditConsultant`.
   - Loading, empty (including the unlinked-recruiter message), and error states.
-- [ ] T064 [US2] Create `frontend/src/pages/consultants/ConsultantFormPage.tsx`, handling create (`/consultants/new`) and edit (`/consultants/:id/edit`). Fields per `ConsultantRequest`, with a visa type select from `/api/reference`. Server `fieldErrors` render through `FormField`, and `ErrorBanner` handles 409 duplicate and concurrency errors. It navigates to the details page on save.
-- [ ] T065 [US2] Create `frontend/src/pages/consultants/ConsultantDetailPage.tsx`. It shows the profile, the `contact` section only when present, `StatusBadge`, and the assigned recruiter.
+- [X] T064 [US2] Create `frontend/src/pages/consultants/ConsultantFormPage.tsx`, handling create (`/consultants/new`) and edit (`/consultants/:id/edit`). Fields per `ConsultantRequest`, with a visa type select from `/api/reference`. Server `fieldErrors` render through `FormField`, and `ErrorBanner` handles 409 duplicate and concurrency errors. It navigates to the details page on save.
+- [X] T065 [US2] Create `frontend/src/pages/consultants/ConsultantDetailPage.tsx`. It shows the profile, the `contact` section only when present, `StatusBadge`, and the assigned recruiter.
   - Status action buttons come from `allowedStatusTransitions`. HOLD and INACTIVE open a `ReasonDialog`.
   - On 422 `READINESS_INCOMPLETE`, `missingItems` render in `ErrorBanner`.
   - An Edit button appears when `canEditConsultant`.
   - `HistoryList` is loaded from `/api/consultants/{id}/history`.
   - Leave clearly separated panel slots for Marketing, Submissions, and Placements, filled in by US4–US6.
-- [ ] T066 [US2] Run `./mvnw verify` and `npm test -- --run && npm run build`, and walk through quickstart V2.
+- [X] T066 [US2] Run `./mvnw verify` and `npm test -- --run && npm run build`, and walk through quickstart V2.
 
 **Checkpoint**: The consultant profile and readiness slice works on its own with seeded
 assignments.
