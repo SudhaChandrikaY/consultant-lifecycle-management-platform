@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.ensar.clmp.consultant.domain.ConsultantStatus;
 import com.ensar.clmp.marketing.web.MarketingSummary;
+import com.ensar.clmp.submission.web.SubmissionSummary;
 import com.ensar.clmp.recruiter.domain.RecruiterStatus;
 import com.ensar.clmp.reference.domain.VisaType;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -32,6 +33,8 @@ public record ConsultantDetail(
         List<ConsultantStatus> allowedStatusTransitions,
         List<String> missingReadinessItems,
         MarketingSummary currentMarketingAssignment,
+        List<SubmissionSummary> submissions,
+        List<SubmissionSummary> openSubmissionsWhileOnHold,
         Long version) {
 
     public record AssignedRecruiter(Long id, String fullName, RecruiterStatus status) {

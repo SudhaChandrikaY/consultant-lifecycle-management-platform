@@ -19,6 +19,7 @@ import {
   label,
   MARKETING_STATUS_LABELS,
   missingItemLabel,
+  SUBMISSION_STATUS_LABELS,
   VISA_TYPE_LABELS,
 } from '../../labels';
 
@@ -219,8 +220,83 @@ function AssignedRecruiter({ consultant }: { consultant: ConsultantDetail }) {
 function CommercialPanels({ consultant }: { consultant: ConsultantDetail }) {
   return (
     <>
+      <OnHoldSubmissionsBanner consultant={consultant} />
       <MarketingPanel consultant={consultant} />
+      <SubmissionsPanel consultant={consultant} />
     </>
+  );
+}
+
+const SUBMITTABLE: ConsultantStatus[] = ['READY', 'MARKETING', 'INTERVIEWING'];
+
+function OnHoldSubmissionsBanner({ consultant }: { consultant: ConsultantDetail }) {
+  const open = consultant.openSubmissionsWhileOnHold ?? [];
+  if (consultant.status !== 'HOLD' || open.length === 0) return null;
+  return (
+    <div className="banner banner--warning" role="status">
+      Consultant is on Hold with {open.length} open submission{open.length === 1 ? '' : 's'}:
+      <ul>
+        {open.map((s) => (
+          <li key={s.id}>
+            <Link to={`/submissions/${s.id}`}>
+              {s.clientName} / {s.jobTitle}
+            </Link>{' '}
+            ({SUBMISSION_STATUS_LABELS[s.status]})
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function SubmissionsPanel({ consultant }: { consultant: ConsultantDetail }) {
+  const { user } = useAuth();
+  const rows = consultant.submissions ?? [];
+  return (
+    <section className="card" aria-labelledby="submissions-heading">
+      <div className="page__header" style={{ marginBottom: 8 }}>
+        <h2 id="submissions-heading" style={{ margin: 0 }}>
+          Submissions
+        </h2>
+        {can.createSubmission(user?.role) && SUBMITTABLE.includes(consultant.status) && (
+          <Link className="button" to={`/submissions/new?consultantId=${consultant.id}`}>
+            New submission
+          </Link>
+        )}
+      </div>
+      {rows.length === 0 ? (
+        <p className="muted">No submissions yet.</p>
+      ) : (
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Job title</th>
+                <th scope="col">Vendor</th>
+                <th scope="col">Client</th>
+                <th scope="col">Status</th>
+                <th scope="col">Submitted date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((s) => (
+                <tr key={s.id}>
+                  <td>
+                    <Link to={`/submissions/${s.id}`}>{s.jobTitle}</Link>
+                  </td>
+                  <td>{s.vendorName}</td>
+                  <td>{s.clientName}</td>
+                  <td>
+                    <StatusBadge status={s.status} label={SUBMISSION_STATUS_LABELS[s.status]} />
+                  </td>
+                  <td>{formatDate(s.submittedDate)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
   );
 }
 

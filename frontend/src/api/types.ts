@@ -82,6 +82,7 @@ export interface ReferenceData {
   visaTypes: VisaType[];
   consultantStatuses: ConsultantStatus[];
   marketingStatuses?: MarketingStatus[];
+  submissionStatuses?: SubmissionStatus[];
 }
 
 export type ChangeType =
@@ -155,6 +156,8 @@ export interface ConsultantDetail {
   allowedStatusTransitions: ConsultantStatus[];
   missingReadinessItems: string[];
   currentMarketingAssignment?: MarketingSummary;
+  submissions?: SubmissionSummary[];
+  openSubmissionsWhileOnHold?: SubmissionSummary[];
   version: number;
 }
 
@@ -244,4 +247,70 @@ export interface MarketingDetail extends MarketingListItem {
   notes: Note[];
   allowedTransitions: MarketingStatus[];
   version: number;
+}
+
+// ---- US5: submissions ----
+
+export type SubmissionStatus =
+  | 'DRAFT'
+  | 'SUBMITTED'
+  | 'UNDER_REVIEW'
+  | 'INTERVIEW_SCHEDULED'
+  | 'INTERVIEW_CLEARED'
+  | 'REJECTED'
+  | 'OFFER'
+  | 'PLACED'
+  | 'WITHDRAWN';
+
+export interface SubmissionSummary {
+  id: number;
+  vendorName: string;
+  clientName: string;
+  jobTitle: string;
+  status: SubmissionStatus;
+  submittedDate: string | null;
+}
+
+export interface SubmissionListItem {
+  id: number;
+  consultant: IdFullName;
+  recruiter: IdFullName;
+  vendor: IdName;
+  client: IdName;
+  jobTitle: string;
+  submittedDate: string | null;
+  billRate: number;
+  status: SubmissionStatus;
+}
+
+export interface SubmissionDetail extends SubmissionListItem {
+  duplicateAcknowledgement: { acknowledgedBy: string; acknowledgedAt: string; earlierSubmissionIds: number[] } | null;
+  notes: Note[];
+  timeline: HistoryEntry[];
+  allowedTransitions: SubmissionStatus[];
+  canCreatePlacement: boolean;
+  version: number;
+}
+
+export interface DuplicateSummary {
+  id: number;
+  status: SubmissionStatus;
+  submittedDate: string | null;
+  createdAt: string;
+  recruiterName: string;
+}
+
+export interface SubmissionCreateRequest {
+  consultantId: number;
+  recruiterId?: number | null;
+  vendorId?: number | null;
+  vendorName?: string | null;
+  clientId?: number | null;
+  clientName?: string | null;
+  jobTitle: string;
+  billRate: number | null;
+  submitNow: boolean;
+  submittedDate?: string | null;
+  note?: string | null;
+  acknowledgeDuplicate: boolean;
 }

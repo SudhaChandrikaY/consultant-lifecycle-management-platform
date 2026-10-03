@@ -24,6 +24,9 @@ import com.ensar.clmp.history.domain.HistoryEntityType;
 import com.ensar.clmp.history.service.HistoryService;
 import com.ensar.clmp.lifecycle.ConsultantLifecycleService;
 import com.ensar.clmp.marketing.service.MarketingService;
+import com.ensar.clmp.submission.domain.SubmissionStatus;
+import com.ensar.clmp.submission.service.SubmissionService;
+import com.ensar.clmp.submission.web.SubmissionSummary;
 
 /** Consultant profile workflows (FR-020–FR-028). Status rules live in ConsultantLifecycleService. */
 @Service
@@ -37,11 +40,13 @@ public class ConsultantService {
     private final HistoryService history;
     private final VersionGuard versionGuard;
     private final MarketingService marketing;
+    private final SubmissionService submissions;
     private final Clock clock;
 
     public ConsultantService(ConsultantRepository consultants, ConsultantAccessPolicy access,
             ConsultantLifecycleService lifecycle, ConsultantAssignmentService assignment, ReadinessChecker readiness,
-            HistoryService history, VersionGuard versionGuard, MarketingService marketing, Clock clock) {
+            HistoryService history, VersionGuard versionGuard, MarketingService marketing, SubmissionService submissions,
+            Clock clock) {
         this.consultants = consultants;
         this.access = access;
         this.lifecycle = lifecycle;
@@ -50,6 +55,7 @@ public class ConsultantService {
         this.history = history;
         this.versionGuard = versionGuard;
         this.marketing = marketing;
+        this.submissions = submissions;
         this.clock = clock;
     }
 
@@ -137,11 +143,15 @@ public class ConsultantService {
                 ? new ConsultantDetail.Contact(c.getEmail(), c.getPhone(), c.getVisaExpirationDate(), c.getNotes())
                 : null;
         boolean commercial = access.canSeeCommercialSections(viewer);
+        List<SubmissionSummary> subs = commercial ? submissions.summariesFor(c.getId()) : null;
+        List<SubmissionSummary> openOnHold = commercial && c.getStatus() == ConsultantStatus.HOLD
+                ? subs.stream().filter(s -> SubmissionStatus.OPEN.contains(s.status())).toList()
+                : null;
         return new ConsultantDetail(c.getId(), c.getFirstName(), c.getLastName(), c.getCity(), c.getState(),
                 c.getPrimarySkill(), c.getAdditionalSkills(), c.getYearsExperience(), c.getVisaType(), c.getStatus(),
                 c.needsReassignment(), recruiter, contact, lifecycle.allowedManualTransitions(c, viewer),
-                readiness.missingItems(c), commercial ? marketing.currentSummaryFor(c.getId()) : null,
-                c.getVersion());
+                readiness.missingItems(c), commercial ? marketing.currentSummaryFor(c.getId()) : null, subs,
+                openOnHold, c.getVersion());
     }
 
     private static BusinessException duplicateEmail() {

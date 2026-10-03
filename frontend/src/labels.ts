@@ -1,5 +1,5 @@
 // Display labels for API enum codes. Each story extends this file.
-import type { ConsultantStatus, MarketingStatus, VisaType } from './api/types';
+import type { ConsultantStatus, MarketingStatus, SubmissionStatus, VisaType } from './api/types';
 
 const READINESS_ITEM_LABELS: Record<string, string> = {
   firstName: 'First name',
@@ -80,3 +80,20 @@ export const MARKETING_STATUS_LABELS: Record<MarketingStatus, string> = {
   HOLD: 'Hold',
   CLOSED: 'Closed',
 };
+
+export const SUBMISSION_STATUS_LABELS: Record<SubmissionStatus, string> = {
+  DRAFT: 'Draft',
+  SUBMITTED: 'Submitted',
+  UNDER_REVIEW: 'Under Review',
+  INTERVIEW_SCHEDULED: 'Interview Scheduled',
+  INTERVIEW_CLEARED: 'Interview Cleared',
+  REJECTED: 'Rejected',
+  OFFER: 'Offer',
+  PLACED: 'Placed',
+  WITHDRAWN: 'Withdrawn',
+};
+
+export function formatMoney(value: number | null | undefined): string {
+  if (value === null || value === undefined) return '—';
+  return `$${Number(value).toFixed(2)}/hr`;
+}

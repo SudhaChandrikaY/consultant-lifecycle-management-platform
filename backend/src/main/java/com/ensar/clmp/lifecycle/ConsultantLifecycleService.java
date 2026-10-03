@@ -35,6 +35,9 @@ import com.ensar.clmp.history.service.TriggerRef;
 import com.ensar.clmp.marketing.domain.MarketingAssignment;
 import com.ensar.clmp.marketing.domain.MarketingAssignmentRepository;
 import com.ensar.clmp.marketing.domain.MarketingStatus;
+import com.ensar.clmp.submission.domain.Submission;
+import com.ensar.clmp.submission.domain.SubmissionRepository;
+import com.ensar.clmp.submission.domain.SubmissionStatus;
 
 /**
  * The single owner of consultant status rules (research R9): the manual transition table
@@ -62,15 +65,18 @@ public class ConsultantLifecycleService {
 
     private final ConsultantRepository consultants;
     private final MarketingAssignmentRepository marketing;
+    private final SubmissionRepository submissions;
     private final HistoryService history;
     private final ReadinessChecker readiness;
     private final VersionGuard versionGuard;
     private final Clock clock;
 
     public ConsultantLifecycleService(ConsultantRepository consultants, MarketingAssignmentRepository marketing,
-            HistoryService history, ReadinessChecker readiness, VersionGuard versionGuard, Clock clock) {
+            SubmissionRepository submissions, HistoryService history, ReadinessChecker readiness,
+            VersionGuard versionGuard, Clock clock) {
         this.consultants = consultants;
         this.marketing = marketing;
+        this.submissions = submissions;
         this.history = history;
         this.readiness = readiness;
         this.versionGuard = versionGuard;
@@ -150,6 +156,33 @@ public class ConsultantLifecycleService {
         }
     }
 
+    /**
+     * Submission status side effects (FR-032). Entering Interview Scheduled makes a Ready or
+     * Marketing consultant Interviewing; once no submission remains in an interview or offer stage,
+     * an Interviewing consultant returns to Marketing (Active marketing exists) or Ready. A
+     * consultant on Hold is never changed by submission activity (research R18-4).
+     */
+    public void onSubmissionStatusChanged(Submission submission, SubmissionStatus oldStatus,
+            SubmissionStatus newStatus, CurrentUser actor) {
+        Consultant consultant = submission.getConsultant();
+        if (consultant.getStatus() == HOLD) {
+            return;
+        }
+        if (newStatus == SubmissionStatus.INTERVIEW_SCHEDULED
+                && (consultant.getStatus() == READY || consultant.getStatus() == MARKETING)) {
+            applyAutomatic(consultant, INTERVIEWING, actor, new TriggerRef(TriggerEvent.SUBMISSION_INTERVIEW_SCHEDULED,
+                    HistoryEntityType.SUBMISSION, submission.getId()));
+            return;
+        }
+        if (consultant.getStatus() == INTERVIEWING && !SubmissionStatus.INTERVIEW_OR_OFFER.contains(newStatus)
+                && !submissions.existsByConsultant_IdAndStatusIn(consultant.getId(), SubmissionStatus.INTERVIEW_OR_OFFER)) {
+            boolean activeMarketing = marketing.existsByConsultant_IdAndStatus(consultant.getId(), MarketingStatus.ACTIVE);
+            applyAutomatic(consultant, activeMarketing ? MARKETING : READY, actor,
+                    new TriggerRef(TriggerEvent.SUBMISSION_LEFT_INTERVIEW_STAGES, HistoryEntityType.SUBMISSION,
+                            submission.getId()));
+        }
+    }
+
     private void applyAutomatic(Consultant consultant, ConsultantStatus target, CurrentUser actor,
             TriggerRef trigger) {
         ConsultantStatus from = consultant.getStatus();
@@ -175,9 +208,15 @@ public class ConsultantLifecycleService {
                 from.name(), target.name(), reason, null, actor);
     }
 
-    /** Refuses Inactive while open submissions exist. Filled in by US5. */
+    /** Refuses Inactive while any submission is still open (edge case "inactive with open submissions"). */
     private void guardInactive(Consultant consultant) {
-        // No submissions exist before US5.
+        List<Long> open = submissions.findByConsultant_IdAndStatusInOrderById(consultant.getId(), SubmissionStatus.OPEN)
+                .stream().map(Submission::getId).toList();
+        if (!open.isEmpty()) {
+            throw new BusinessException(ErrorCode.OPEN_SUBMISSIONS_EXIST,
+                    "Withdraw or close the consultant's open submissions before setting Inactive.",
+                    Map.of("openSubmissionIds", open));
+        }
     }
 
     /** PLACED -> ACTIVE_PROJECT only on or after the placement start date. Filled in by US6. */

@@ -73,3 +73,46 @@ describe('Consultant detail — Marketing panel', () => {
     expect(screen.queryByText(/overdue/i)).not.toBeInTheDocument();
   });
 });
+
+const WITH_SUBMISSIONS = {
+  ...FULL_DETAIL,
+  submissions: [
+    { id: 31, vendorName: 'Acme Staffing', clientName: 'Globex', jobTitle: 'Java Developer', status: 'SUBMITTED', submittedDate: '2026-10-01' },
+  ],
+  openSubmissionsWhileOnHold: [],
+} as ConsultantDetail;
+
+describe('Consultant detail — Submissions panel and on-Hold banner', () => {
+  beforeEach(() => vi.resetAllMocks());
+
+  it.each(['ADMIN', 'MANAGER', 'RECRUITER'] as Role[])('lists submissions with links for %s', async (role) => {
+    renderDetail(role, WITH_SUBMISSIONS);
+    const panel = await screen.findByRole('region', { name: /submissions/i });
+    expect(within(panel).getByText('Acme Staffing')).toBeInTheDocument();
+    expect(within(panel).getByText('Globex')).toBeInTheDocument();
+    expect(within(panel).getByRole('link', { name: 'Java Developer' })).toHaveAttribute('href', '/submissions/31');
+    expect(within(panel).getByText('Submitted')).toBeInTheDocument();
+  });
+
+  it('warns when the consultant is on Hold with open submissions', async () => {
+    renderDetail('RECRUITER', {
+      ...WITH_SUBMISSIONS,
+      status: 'HOLD',
+      openSubmissionsWhileOnHold: WITH_SUBMISSIONS.submissions,
+    } as ConsultantDetail);
+    const banner = await screen.findByText(/consultant is on hold with 1 open submission/i);
+    expect(banner).toBeInTheDocument();
+  });
+
+  it('renders neither for HR_OPERATIONS', async () => {
+    renderDetail('HR_OPERATIONS', {
+      ...WITH_SUBMISSIONS,
+      status: 'HOLD',
+      openSubmissionsWhileOnHold: WITH_SUBMISSIONS.submissions,
+    } as ConsultantDetail);
+    expect(await screen.findByRole('heading', { name: /arun kumar/i })).toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: /submissions/i })).not.toBeInTheDocument();
+    expect(screen.queryByText(/open submission/i)).not.toBeInTheDocument();
+    expect(screen.queryByText('Acme Staffing')).not.toBeInTheDocument();
+  });
+});

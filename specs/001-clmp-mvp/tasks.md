@@ -542,9 +542,9 @@ redaction.
 
 ### Tests for User Story 5
 
-- [ ] T098 [P] [US5] Write `backend/src/test/java/com/ensar/clmp/submission/SubmissionTransitionsTest.java`, a unit test covering every FR-058 edge. It checks that REJECTED, WITHDRAWN, and PLACED are terminal (FR-057), that a manual →PLACED is always refused, and the groupings ACTIVE, INTERVIEW_STAGE, INTERVIEW_OR_OFFER, and OPEN.
-- [ ] T099 [P] [US5] Write `backend/src/test/java/com/ensar/clmp/reference/NameNormalizerTest.java`. It checks that `"  Acme   Staffing "` and `"acme staffing"` normalize equal, and the same for job titles (FR-055, edge case).
-- [ ] T100 [P] [US5] Write `backend/src/test/java/com/ensar/clmp/it/US5SubmissionIT.java`:
+- [X] T098 [P] [US5] Write `backend/src/test/java/com/ensar/clmp/submission/SubmissionTransitionsTest.java`, a unit test covering every FR-058 edge. It checks that REJECTED, WITHDRAWN, and PLACED are terminal (FR-057), that a manual →PLACED is always refused, and the groupings ACTIVE, INTERVIEW_STAGE, INTERVIEW_OR_OFFER, and OPEN.
+- [X] T099 [P] [US5] Write `backend/src/test/java/com/ensar/clmp/reference/NameNormalizerTest.java`. It checks that `"  Acme   Staffing "` and `"acme staffing"` normalize equal, and the same for job titles (FR-055, edge case).
+- [X] T100 [P] [US5] Write `backend/src/test/java/com/ensar/clmp/it/US5SubmissionIT.java`:
   - AS 5.1: create with `submitNow=false` gives DRAFT with no date. With `submitNow=true` it gives SUBMITTED with today's date (fixed clock).
   - AS 5.2: BENCH, HOLD, INACTIVE, PLACED, or ACTIVE_PROJECT returns 422 `CONSULTANT_NOT_ELIGIBLE`.
   - AS 5.3: a duplicate with case and whitespace variants returns 409 `DUPLICATE_SUBMISSION` with `duplicates[]` (including WITHDRAWN and REJECTED originals). With `acknowledgeDuplicate=true` it returns 201, and the detail shows `duplicateAcknowledgement` with the user, time, and earlier ids.
@@ -562,17 +562,17 @@ redaction.
   - FR-051: vendor and client find-or-create, normalized.
   - Edge cases: setting a consultant with open submissions to INACTIVE returns 422 `OPEN_SUBMISSIONS_EXIST`. A consultant on HOLD keeps existing submissions changeable, but new ones return 422 `CONSULTANT_NOT_ELIGIBLE`.
   - FR-064: as hr, `GET /api/consultants/{id}` has no `submissions` or `openSubmissionsWhileOnHold` keys, and the consultant history description for the Interviewing change reads "Submission moved to Interview Scheduled" with null trigger ids and no client name.
-- [ ] T101 [P] [US5] Write `frontend/src/test/submissionDuplicate.test.tsx`. With a mocked client, the first POST rejects with 409 `DUPLICATE_SUBMISSION`. Assert that the warning dialog lists the duplicates, that Cancel sends nothing more, and that Confirm re-POSTs with `acknowledgeDuplicate: true`.
-- [ ] T102 [P] [US5] Extend `frontend/src/test/consultantDetailPanels.test.tsx`:
+- [X] T101 [P] [US5] Write `frontend/src/test/submissionDuplicate.test.tsx`. With a mocked client, the first POST rejects with 409 `DUPLICATE_SUBMISSION`. Assert that the warning dialog lists the duplicates, that Cancel sends nothing more, and that Confirm re-POSTs with `acknowledgeDuplicate: true`.
+- [X] T102 [P] [US5] Extend `frontend/src/test/consultantDetailPanels.test.tsx`:
   - The Submissions panel lists vendor, client, job title, status, and submitted date with links for ADMIN, MANAGER, and RECRUITER.
   - When the consultant is HOLD and `openSubmissionsWhileOnHold` is non-empty, a warning banner lists those submissions.
   - For HR_OPERATIONS, neither renders.
 
 ### Implementation for User Story 5
 
-- [ ] T103 [P] [US5] Create `backend/src/main/java/com/ensar/clmp/reference/service/NameNormalizer.java` (lower, trim, collapse internal whitespace), `reference/domain/Vendor.java`, and `reference/domain/Client.java`, both `@Entity` (`vendor`/`client`) with `name` String(120) required and trimmed, `normalized_name` String(120) unique, `created_at`, and `created_by_user_id`. Also create `VendorRepository.java` and `ClientRepository.java` (`findByNormalizedName`, `findTop20ByNormalizedNameContainingOrderByName`).
-- [ ] T104 [US5] Create `backend/src/main/java/com/ensar/clmp/reference/service/CounterpartyService.java` (`resolveVendor(Long id, String name, actor)` and `resolveClient(...)`). Exactly one of id or name must be given, else 400. A name does find-or-create on its normalized form. It also has `searchVendors(q)` and `searchClients(q)`. Then create `reference/web/CounterpartyController.java` with `GET /api/vendors?q=` and `GET /api/clients?q=` (ADMIN, MANAGER, RECRUITER), returning `[{id,name}]`, at most 20.
-- [ ] T105 [P] [US5] Create `backend/src/main/java/com/ensar/clmp/submission/domain/SubmissionStatus.java` (`DRAFT, SUBMITTED, UNDER_REVIEW, INTERVIEW_SCHEDULED, INTERVIEW_CLEARED, REJECTED, OFFER, PLACED, WITHDRAWN`, with static sets `ACTIVE`, `INTERVIEW_STAGE`, `INTERVIEW_OR_OFFER`, `OPEN`, and `TERMINAL` per data-model.md) and `submission/domain/Submission.java`, `@Entity submission`:
+- [X] T103 [P] [US5] Create `backend/src/main/java/com/ensar/clmp/reference/service/NameNormalizer.java` (lower, trim, collapse internal whitespace), `reference/domain/Vendor.java`, and `reference/domain/Client.java`, both `@Entity` (`vendor`/`client`) with `name` String(120) required and trimmed, `normalized_name` String(120) unique, `created_at`, and `created_by_user_id`. Also create `VendorRepository.java` and `ClientRepository.java` (`findByNormalizedName`, `findTop20ByNormalizedNameContainingOrderByName`).
+- [X] T104 [US5] Create `backend/src/main/java/com/ensar/clmp/reference/service/CounterpartyService.java` (`resolveVendor(Long id, String name, actor)` and `resolveClient(...)`). Exactly one of id or name must be given, else 400. A name does find-or-create on its normalized form. It also has `searchVendors(q)` and `searchClients(q)`. Then create `reference/web/CounterpartyController.java` with `GET /api/vendors?q=` and `GET /api/clients?q=` (ADMIN, MANAGER, RECRUITER), returning `[{id,name}]`, at most 20.
+- [X] T105 [P] [US5] Create `backend/src/main/java/com/ensar/clmp/submission/domain/SubmissionStatus.java` (`DRAFT, SUBMITTED, UNDER_REVIEW, INTERVIEW_SCHEDULED, INTERVIEW_CLEARED, REJECTED, OFFER, PLACED, WITHDRAWN`, with static sets `ACTIVE`, `INTERVIEW_STAGE`, `INTERVIEW_OR_OFFER`, `OPEN`, and `TERMINAL` per data-model.md) and `submission/domain/Submission.java`, `@Entity submission`:
   - `consultant_id` FK required
   - `recruiter_id` FK required
   - `vendor_id` FK required, `client_id` FK required
@@ -586,17 +586,17 @@ redaction.
 
   Indexes on `status`, `recruiter_id`, `consultant_id`, `submitted_date`, and
   `(consultant_id, vendor_id, client_id, job_title_normalized)`.
-- [ ] T106 [P] [US5] Create `backend/src/main/java/com/ensar/clmp/submission/domain/SubmissionNote.java` (`@Entity submission_note`: `submission_id` FK, `body` String(2000) required and non-blank, `author_user_id`, `created_at`; append-only) and `SubmissionDuplicateRef.java` (`@Entity submission_duplicate_ref`: `submission_id`, `earlier_submission_id`). Also create the repositories: `SubmissionRepository.java` (`JpaSpecificationExecutor`, `findDuplicates(consultantId, vendorId, clientId, jobTitleNormalized)`, `existsByConsultantIdAndStatusIn`, `findByConsultantIdAndStatusIn`), `SubmissionNoteRepository.java` (extends `Repository`, save and find only), and `SubmissionDuplicateRefRepository.java`.
-- [ ] T107 [P] [US5] Create these in `backend/src/main/java/com/ensar/clmp/submission/service/`:
+- [X] T106 [P] [US5] Create `backend/src/main/java/com/ensar/clmp/submission/domain/SubmissionNote.java` (`@Entity submission_note`: `submission_id` FK, `body` String(2000) required and non-blank, `author_user_id`, `created_at`; append-only) and `SubmissionDuplicateRef.java` (`@Entity submission_duplicate_ref`: `submission_id`, `earlier_submission_id`). Also create the repositories: `SubmissionRepository.java` (`JpaSpecificationExecutor`, `findDuplicates(consultantId, vendorId, clientId, jobTitleNormalized)`, `existsByConsultantIdAndStatusIn`, `findByConsultantIdAndStatusIn`), `SubmissionNoteRepository.java` (extends `Repository`, save and find only), and `SubmissionDuplicateRefRepository.java`.
+- [X] T107 [P] [US5] Create these in `backend/src/main/java/com/ensar/clmp/submission/service/`:
   - `SubmissionTransitions.java`: the FR-058 map, with →PLACED excluded from manual changes.
   - `SubmissionAccessPolicy.java`:
     - View and update allowed for ADMIN, and for a RECRUITER where `submission.recruiter_id = me` OR the consultant's current recruiter = me. MANAGER can view only. HR is refused (FR-063, FR-064).
     - `canCreatePlacementFrom(submission, actor)`: ADMIN, or a RECRUITER where `submission.recruiter_id = me` (FR-070).
   - `SubmissionFilter.java` + `SubmissionSpecifications.java`: `statuses, recruiterId, vendorId, clientId, consultantId, submittedFrom, submittedTo`, plus `scopeFor(actor)` using the FR-063 rule.
-- [ ] T108 [US5] Extend `backend/src/main/java/com/ensar/clmp/lifecycle/ConsultantLifecycleService.java`:
+- [X] T108 [US5] Extend `backend/src/main/java/com/ensar/clmp/lifecycle/ConsultantLifecycleService.java`:
   - Add `onSubmissionStatusChanged(submission, oldStatus, newStatus, actor)`. On →INTERVIEW_SCHEDULED, a READY or MARKETING consultant becomes INTERVIEWING (`SUBMISSION_INTERVIEW_SCHEDULED`). Otherwise, if the consultant is INTERVIEWING and no submission remains in INTERVIEW_OR_OFFER, the consultant becomes MARKETING if an ACTIVE marketing assignment exists, else READY (`SUBMISSION_LEFT_INTERVIEW_STAGES`). A HOLD consultant is never changed by submission status changes.
   - Implement `guardInactive`: if any submission for the consultant is OPEN, throw 422 `OPEN_SUBMISSIONS_EXIST` with `openSubmissionIds` (add to `ErrorCode`).
-- [ ] T109 [US5] Create `backend/src/main/java/com/ensar/clmp/submission/service/SubmissionService.java`. It has **no update-details method**.
+- [X] T109 [US5] Create `backend/src/main/java/com/ensar/clmp/submission/service/SubmissionService.java`. It has **no update-details method**.
   - `create(request, actor)`:
     - The consultant must be READY, MARKETING, or INTERVIEWING, else 422 `CONSULTANT_NOT_ELIGIBLE` with `consultantStatus` (FR-052).
     - The recruiter defaults to the consultant's current recruiter.
@@ -608,11 +608,11 @@ redaction.
   - `addNote`
   - `getDetail`: timeline from `HistoryQueryService`, notes, `allowedTransitions`, and `canCreatePlacement` = status OFFER AND `SubmissionAccessPolicy.canCreatePlacementFrom`.
   - `list`
-- [ ] T110 [US5] Add viewer-aware trigger labels:
+- [X] T110 [US5] Add viewer-aware trigger labels:
   - Create `backend/src/main/java/com/ensar/clmp/history/service/TriggerLabelResolver.java`, an interface with `supports(HistoryEntityType)` and `Map<Long,String> labels(Set<Long> ids)`.
   - Create `submission/service/SubmissionTriggerLabelResolver.java`, implementing it for SUBMISSION and returning "Submission for {client} / {jobTitle}" in one batch query.
   - Create `history/service/HistoryDescriptionRenderer.java` and use it from `HistoryQueryService`. Non-HR viewers get labelled descriptions, for example "Submission for Acme / Java Developer moved to Interview Scheduled". HR_OPERATIONS viewers get generic descriptions ("Submission moved to Interview Scheduled") with `trigger.entityType`/`entityId` null (research R8, FR-064, FR-082).
-- [ ] T111 [US5] Create the submission DTOs in `backend/src/main/java/com/ensar/clmp/submission/web/`:
+- [X] T111 [US5] Create the submission DTOs in `backend/src/main/java/com/ensar/clmp/submission/web/`:
   - `SubmissionCreateRequest.java`: `consultantId` `@NotNull`, `recruiterId`, `vendorId`/`vendorName` `@Size(max=120)`, `clientId`/`clientName` `@Size(max=120)`, `jobTitle` `@NotBlank @Size(max=120)`, `billRate` `@NotNull @DecimalMin(value="0", inclusive=false) @Digits(integer=8, fraction=2)`, `submitNow`, `submittedDate`, `note` `@Size(max=2000)`, `acknowledgeDuplicate`.
   - `SubmissionStatusRequest.java`
   - `SubmissionListItem.java`
@@ -624,20 +624,20 @@ redaction.
   is **no PUT**. GET allows ADMIN, MANAGER, and RECRUITER. Mutations allow ADMIN and RECRUITER.
   Sort allowlist: `submittedDate, status, billRate`. Add `submissionStatuses` to
   `ReferenceController`.
-- [ ] T112 [US5] Fill `submissions` and `openSubmissionsWhileOnHold` (when the consultant is HOLD) in `ConsultantDetail` for non-HR viewers, scoped by `SubmissionAccessPolicy`, in `backend/src/main/java/com/ensar/clmp/consultant/service/ConsultantService.java`. Extend `DemoDataSeeder.seedSubmissions()` with:
+- [X] T112 [US5] Fill `submissions` and `openSubmissionsWhileOnHold` (when the consultant is HOLD) in `ConsultantDetail` for non-HR viewers, scoped by `SubmissionAccessPolicy`, in `backend/src/main/java/com/ensar/clmp/consultant/service/ConsultantService.java`. Extend `DemoDataSeeder.seedSubmissions()` with:
   - Vendors, clients, and submissions across all statuses for recruiter1 and recruiter2.
   - One submission at OFFER for US6.
   - One OFFER submission for a consultant on HOLD, for the US6 Hold → Placed demo.
-- [ ] T113 [P] [US5] Create `frontend/src/api/submissions.ts` and `frontend/src/api/counterparties.ts` (vendor and client search), with types appended to `types.ts` and `SubmissionStatus` labels added to `labels.ts`.
-- [ ] T114 [P] [US5] Create `frontend/src/components/CounterpartyPicker.tsx`, a typeahead over `/api/vendors` or `/api/clients` with an "Add '{typed}'" option that yields `{name}` instead of `{id}`.
-- [ ] T115 [US5] Create `frontend/src/pages/submissions/SubmissionListPage.tsx`, with status (multi), recruiter, vendor, client, and submitted date range filters. Columns: consultant, recruiter, vendor, client, job title, submitted date, bill rate (USD/hr), and `StatusBadge`.
-- [ ] T116 [US5] Create `frontend/src/pages/submissions/SubmissionFormPage.tsx` (`/submissions/new?consultantId=`), with `CounterpartyPicker` for vendor and client, job title, bill rate, a "Submit now" checkbox with submitted date, and an optional note. On 409 `DUPLICATE_SUBMISSION` it opens a `ConfirmDialog` listing the earlier submissions (status and date); Confirm re-POSTs with `acknowledgeDuplicate: true`.
-- [ ] T117 [US5] Create `frontend/src/pages/submissions/SubmissionDetailPage.tsx`. It shows all fields (read-only, with no edit form), the duplicate acknowledgement, and a timeline (`HistoryList`). It has the append-only notes list and add form, plus a status change control limited to `allowedTransitions`, with an optional note and a submitted date when moving to SUBMITTED. These are hidden for MANAGER (read-only).
-- [ ] T118 [US5] Render the **Submissions panel** and the **on-Hold open-submissions banner** in `frontend/src/pages/consultants/ConsultantDetailPage.tsx`.
+- [X] T113 [P] [US5] Create `frontend/src/api/submissions.ts` and `frontend/src/api/counterparties.ts` (vendor and client search), with types appended to `types.ts` and `SubmissionStatus` labels added to `labels.ts`.
+- [X] T114 [P] [US5] Create `frontend/src/components/CounterpartyPicker.tsx`, a typeahead over `/api/vendors` or `/api/clients` with an "Add '{typed}'" option that yields `{name}` instead of `{id}`.
+- [X] T115 [US5] Create `frontend/src/pages/submissions/SubmissionListPage.tsx`, with status (multi), recruiter, vendor, client, and submitted date range filters. Columns: consultant, recruiter, vendor, client, job title, submitted date, bill rate (USD/hr), and `StatusBadge`.
+- [X] T116 [US5] Create `frontend/src/pages/submissions/SubmissionFormPage.tsx` (`/submissions/new?consultantId=`), with `CounterpartyPicker` for vendor and client, job title, bill rate, a "Submit now" checkbox with submitted date, and an optional note. On 409 `DUPLICATE_SUBMISSION` it opens a `ConfirmDialog` listing the earlier submissions (status and date); Confirm re-POSTs with `acknowledgeDuplicate: true`.
+- [X] T117 [US5] Create `frontend/src/pages/submissions/SubmissionDetailPage.tsx`. It shows all fields (read-only, with no edit form), the duplicate acknowledgement, and a timeline (`HistoryList`). It has the append-only notes list and add form, plus a status change control limited to `allowedTransitions`, with an optional note and a submitted date when moving to SUBMITTED. These are hidden for MANAGER (read-only).
+- [X] T118 [US5] Render the **Submissions panel** and the **on-Hold open-submissions banner** in `frontend/src/pages/consultants/ConsultantDetailPage.tsx`.
   - The panel is a table of the consultant's visible `submissions` (vendor, client, job title, status, submitted date, linking to `/submissions/{id}`), with a "New submission" action when `canCreateSubmission` and the consultant is READY, MARKETING, or INTERVIEWING.
   - When the consultant is HOLD and `openSubmissionsWhileOnHold` is non-empty, a warning banner reads "Consultant is on Hold with N open submissions" and lists them.
   - Neither is rendered for HR_OPERATIONS.
-- [ ] T119 [US5] Run `./mvnw verify` and `npm test -- --run && npm run build`, and walk through quickstart V5.
+- [X] T119 [US5] Run `./mvnw verify` and `npm test -- --run && npm run build`, and walk through quickstart V5.
 
 **Checkpoint**: Submissions and interview tracking work with automatic Interviewing transitions.
 

@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.ensar.clmp.consultant.domain.ConsultantStatus;
 import com.ensar.clmp.marketing.domain.MarketingStatus;
+import com.ensar.clmp.submission.domain.SubmissionStatus;
 import com.ensar.clmp.reference.domain.RegionRepository;
 import com.ensar.clmp.reference.domain.TeamRepository;
 import com.ensar.clmp.reference.domain.VisaType;
@@ -32,6 +33,7 @@ public class ReferenceService {
                         .map(r -> new ReferenceResponse.Item(r.getId(), r.getCode(), r.getName())).toList(),
                 List.of(VisaType.values()),
                 List.of(ConsultantStatus.values()),
-                List.of(MarketingStatus.values()));
+                List.of(MarketingStatus.values()),
+                List.of(SubmissionStatus.values()));
     }
 }

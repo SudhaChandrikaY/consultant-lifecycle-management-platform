@@ -15,6 +15,9 @@ import MarketingListPage from './pages/marketing/MarketingListPage';
 import RecruiterDetailPage from './pages/recruiters/RecruiterDetailPage';
 import RecruiterFormPage from './pages/recruiters/RecruiterFormPage';
 import RecruiterListPage from './pages/recruiters/RecruiterListPage';
+import SubmissionDetailPage from './pages/submissions/SubmissionDetailPage';
+import SubmissionFormPage from './pages/submissions/SubmissionFormPage';
+import SubmissionListPage from './pages/submissions/SubmissionListPage';
 import NotFound from './pages/NotFound';
 
 /** Minimal placeholder for areas delivered by later stories. */
@@ -46,13 +49,9 @@ export const APP_ROUTES: AppRoute[] = [
   { path: '/marketing', roles: ROUTE_ROLES.commercial, element: <MarketingListPage /> },
   { path: '/marketing/new', roles: ROUTE_ROLES.marketingCreators, element: <MarketingFormPage /> },
   { path: '/marketing/:id', roles: ROUTE_ROLES.commercial, element: <MarketingDetailPage /> },
-  { path: '/submissions', roles: ROUTE_ROLES.commercial, element: <Placeholder title="Submissions" /> },
-  {
-    path: '/submissions/new',
-    roles: ROUTE_ROLES.submissionCreators,
-    element: <Placeholder title="New submission" />,
-  },
-  { path: '/submissions/:id', roles: ROUTE_ROLES.commercial, element: <Placeholder title="Submission" /> },
+  { path: '/submissions', roles: ROUTE_ROLES.commercial, element: <SubmissionListPage /> },
+  { path: '/submissions/new', roles: ROUTE_ROLES.submissionCreators, element: <SubmissionFormPage /> },
+  { path: '/submissions/:id', roles: ROUTE_ROLES.commercial, element: <SubmissionDetailPage /> },
   { path: '/placements', roles: ROUTE_ROLES.commercial, element: <Placeholder title="Placements" /> },
   { path: '/placements/new', roles: ROUTE_ROLES.placementCreators, element: <Placeholder title="New placement" /> },
   { path: '/placements/:id', roles: ROUTE_ROLES.commercial, element: <Placeholder title="Placement" /> },

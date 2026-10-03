@@ -20,7 +20,9 @@ public enum ErrorCode {
     RECRUITER_INACTIVE(HttpStatus.UNPROCESSABLE_CONTENT, "Recruiter inactive"),
     CONSULTANT_NOT_ELIGIBLE(HttpStatus.UNPROCESSABLE_CONTENT, "Consultant not eligible"),
     OPEN_ASSIGNMENT_EXISTS(HttpStatus.CONFLICT, "Open assignment exists"),
-    BUSINESS_RULE(HttpStatus.UNPROCESSABLE_CONTENT, "Business rule");
+    BUSINESS_RULE(HttpStatus.UNPROCESSABLE_CONTENT, "Business rule"),
+    DUPLICATE_SUBMISSION(HttpStatus.CONFLICT, "Possible duplicate submission"),
+    OPEN_SUBMISSIONS_EXIST(HttpStatus.UNPROCESSABLE_CONTENT, "Open submissions exist");
 
     private final HttpStatus status;
     private final String title;
