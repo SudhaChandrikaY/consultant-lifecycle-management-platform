@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import com.ensar.clmp.consultant.domain.ConsultantStatus;
+import com.ensar.clmp.marketing.web.MarketingSummary;
 import com.ensar.clmp.recruiter.domain.RecruiterStatus;
 import com.ensar.clmp.reference.domain.VisaType;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -11,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 /**
  * Role-shaped consultant details (research R8). Null sections are omitted entirely: {@code contact}
  * for viewers who may not see it (FR-103), and the commercial panels for HR_OPERATIONS (FR-064).
+ * {@code currentMarketingAssignment} is also absent when the consultant has no open assignment.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record ConsultantDetail(
@@ -29,6 +31,7 @@ public record ConsultantDetail(
         Contact contact,
         List<ConsultantStatus> allowedStatusTransitions,
         List<String> missingReadinessItems,
+        MarketingSummary currentMarketingAssignment,
         Long version) {
 
     public record AssignedRecruiter(Long id, String fullName, RecruiterStatus status) {

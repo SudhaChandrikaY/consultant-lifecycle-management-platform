@@ -13,7 +13,9 @@ import com.ensar.clmp.common.error.ErrorCode;
 import com.ensar.clmp.common.service.VersionGuard;
 import com.ensar.clmp.consultant.domain.Consultant;
 import com.ensar.clmp.consultant.domain.ConsultantRepository;
+import com.ensar.clmp.history.domain.HistoryEntityType;
 import com.ensar.clmp.history.service.HistoryService;
+import com.ensar.clmp.marketing.domain.MarketingAssignmentRepository;
 import com.ensar.clmp.recruiter.domain.Recruiter;
 import com.ensar.clmp.recruiter.domain.RecruiterRepository;
 
@@ -23,14 +25,16 @@ public class ConsultantAssignmentService {
 
     private final ConsultantRepository consultants;
     private final RecruiterRepository recruiters;
+    private final MarketingAssignmentRepository marketing;
     private final HistoryService history;
     private final VersionGuard versionGuard;
     private final Clock clock;
 
     public ConsultantAssignmentService(ConsultantRepository consultants, RecruiterRepository recruiters,
-            HistoryService history, VersionGuard versionGuard, Clock clock) {
+            MarketingAssignmentRepository marketing, HistoryService history, VersionGuard versionGuard, Clock clock) {
         this.consultants = consultants;
         this.recruiters = recruiters;
+        this.marketing = marketing;
         this.history = history;
         this.versionGuard = versionGuard;
         this.clock = clock;
@@ -60,8 +64,16 @@ public class ConsultantAssignmentService {
         return consultant;
     }
 
-    /** The open marketing assignment follows the consultant to the new recruiter. Filled in by US4. */
+    /**
+     * The open marketing assignment follows the consultant: owner recruiter and team move to the
+     * new recruiter in the same transaction (edge case "reassigned mid-marketing").
+     */
     private void transferOpenMarketingOwnership(Consultant consultant, Recruiter newRecruiter, CurrentUser actor) {
-        // No marketing assignments exist before US4.
+        marketing.findOpenFor(consultant.getId()).ifPresent(assignment -> {
+            String oldOwner = assignment.getOwnerRecruiter().getFullName();
+            assignment.transferTo(newRecruiter);
+            history.recordOwnerTransfer(HistoryEntityType.MARKETING_ASSIGNMENT, assignment.getId(), consultant.getId(),
+                    newRecruiter.getId(), oldOwner, newRecruiter.getFullName(), actor);
+        });
     }
 }

@@ -440,7 +440,7 @@ page shows the marketing panel (quickstart V4).
 
 ### Tests for User Story 4
 
-- [ ] T079 [P] [US4] Write `backend/src/test/java/com/ensar/clmp/marketing/MarketingTransitionsTest.java`, a unit test covering the FR-041 table per role:
+- [X] T079 [P] [US4] Write `backend/src/test/java/com/ensar/clmp/marketing/MarketingTransitionsTest.java`, a unit test covering the FR-041 table per role:
   - DRAFT→ACTIVE: ADMIN and the owning RECRUITER, not MANAGER.
   - DRAFT→CLOSED
   - ACTIVE→HOLD, reason required
@@ -448,7 +448,7 @@ page shows the marketing panel (quickstart V4).
   - ACTIVE or HOLD→CLOSED, reason required
   - CLOSED→ACTIVE: ADMIN and MANAGER only; refused when `close_reason` = "Placed".
   - Invalid transitions return `INVALID_TRANSITION`.
-- [ ] T080 [P] [US4] Write `backend/src/test/java/com/ensar/clmp/it/US4MarketingIT.java`:
+- [X] T080 [P] [US4] Write `backend/src/test/java/com/ensar/clmp/it/US4MarketingIT.java`:
   - AS 4.1: create for a READY consultant returns DRAFT with the owner recruiter, team, and dates.
   - FR-040: create for BENCH, MARKETING, INTERVIEWING, HOLD, or INACTIVE returns 422 `CONSULTANT_NOT_ELIGIBLE`.
   - AS 4.2: activating returns ACTIVE, the consultant becomes MARKETING, and both history rows exist. The consultant row has `systemTriggered=true`, `trigger.event=MARKETING_ACTIVATED`, and the actor.
@@ -462,18 +462,18 @@ page shows the marketing panel (quickstart V4).
   - Notes have no update or delete endpoint.
   - Edge cases: a consultant manually set to HOLD moves an ACTIVE assignment to HOLD (system-triggered, `CONSULTANT_HOLD`). A consultant set to INACTIVE closes the open assignment with reason "Consultant inactive". Reassigning the consultant transfers the open assignment's owner and team (OWNER_TRANSFER history), and the new recruiter can then update it.
   - As hr, `GET /api/consultants/{id}` has no `currentMarketingAssignment` key.
-- [ ] T081 [P] [US4] Write `frontend/src/test/consultantDetailPanels.test.tsx` (extended in US5 and US6). With a mocked `ConsultantDetail`, the Marketing panel renders status, target date, overdue flag, and a link for ADMIN, MANAGER, and RECRUITER. For HR_OPERATIONS, the Marketing panel isn't rendered even if the data were present.
+- [X] T081 [P] [US4] Write `frontend/src/test/consultantDetailPanels.test.tsx` (extended in US5 and US6). With a mocked `ConsultantDetail`, the Marketing panel renders status, target date, overdue flag, and a link for ADMIN, MANAGER, and RECRUITER. For HR_OPERATIONS, the Marketing panel isn't rendered even if the data were present.
 
 ### Implementation for User Story 4
 
-- [ ] T082 [P] [US4] Create `backend/src/main/java/com/ensar/clmp/history/domain/TriggerEvent.java` (`MARKETING_ACTIVATED, MARKETING_REOPENED, MARKETING_CLOSED, SUBMISSION_INTERVIEW_SCHEDULED, SUBMISSION_LEFT_INTERVIEW_STAGES, PLACEMENT_CREATED, CONSULTANT_HOLD, CONSULTANT_INACTIVE`).
-- [ ] T083 [US4] Add system-triggered history support:
+- [X] T082 [P] [US4] Create `backend/src/main/java/com/ensar/clmp/history/domain/TriggerEvent.java` (`MARKETING_ACTIVATED, MARKETING_REOPENED, MARKETING_CLOSED, SUBMISSION_INTERVIEW_SCHEDULED, SUBMISSION_LEFT_INTERVIEW_STAGES, PLACEMENT_CREATED, CONSULTANT_HOLD, CONSULTANT_INACTIVE`).
+- [X] T083 [US4] Add system-triggered history support:
   - Add `system_triggered` boolean, `trigger_event` nullable, `trigger_entity_type` nullable, and `trigger_entity_id` nullable to `backend/src/main/java/com/ensar/clmp/history/domain/HistoryRecord.java`.
   - Add a `TriggerRef(event, entityType, entityId)` record and `TriggerRef` overloads of each status/close method in `history/service/HistoryService.java` that set `system_triggered=true` (FR-036).
   - Add `systemTriggered` and `trigger{event,entityType,entityId}` to `history/web/HistoryEntry.java`.
   - Make `HistoryQueryService` render a generic description per `TriggerEvent`, for example "Marketing activated".
   - Show the "system" marker in `frontend/src/components/HistoryList.tsx`.
-- [ ] T084 [P] [US4] Create `backend/src/main/java/com/ensar/clmp/marketing/domain/MarketingStatus.java` (`DRAFT, ACTIVE, HOLD, CLOSED`) and `marketing/domain/MarketingAssignment.java`, `@Entity marketing_assignment`:
+- [X] T084 [P] [US4] Create `backend/src/main/java/com/ensar/clmp/marketing/domain/MarketingStatus.java` (`DRAFT, ACTIVE, HOLD, CLOSED`) and `marketing/domain/MarketingAssignment.java`, `@Entity marketing_assignment`:
   - `consultant_id` FK required
   - `owner_recruiter_id` FK, defaulting to the consultant's current recruiter
   - `owner_team_id` FK, derived from the owner recruiter
@@ -489,18 +489,18 @@ page shows the marketing panel (quickstart V4).
   `marketing/domain/MarketingAssignmentRepository.java` (`JpaSpecificationExecutor`,
   `findFirstByConsultantIdAndStatusIn(consultantId, {DRAFT, ACTIVE, HOLD})`,
   `existsByConsultantIdAndStatus`).
-- [ ] T085 [P] [US4] Create `backend/src/main/java/com/ensar/clmp/marketing/domain/MarketingNote.java` (`@Entity marketing_note`: `marketing_assignment_id` FK required, `body` String(2000) required and non-blank, `author_user_id`, `created_at` set by the server; no setters) and `marketing/domain/MarketingNoteRepository.java` (extends `Repository`, with only `save` and `findByMarketingAssignmentIdOrderByCreatedAtAsc`; append-only per FR-045).
-- [ ] T086 [P] [US4] Create these in `backend/src/main/java/com/ensar/clmp/marketing/service/`:
+- [X] T085 [P] [US4] Create `backend/src/main/java/com/ensar/clmp/marketing/domain/MarketingNote.java` (`@Entity marketing_note`: `marketing_assignment_id` FK required, `body` String(2000) required and non-blank, `author_user_id`, `created_at` set by the server; no setters) and `marketing/domain/MarketingNoteRepository.java` (extends `Repository`, with only `save` and `findByMarketingAssignmentIdOrderByCreatedAtAsc`; append-only per FR-045).
+- [X] T086 [P] [US4] Create these in `backend/src/main/java/com/ensar/clmp/marketing/service/`:
   - `MarketingTransitions.java`: the transition table and `allowedFor(assignment, actorRole, isOwningRecruiter)`.
   - `MarketingAccessPolicy.java`: view allowed for ADMIN, MANAGER, and the owning RECRUITER, where owning means the consultant's current recruiter is the caller. Create, edit, and notes allowed for ADMIN and the owning RECRUITER.
   - `MarketingFilter.java` + `MarketingSpecifications.java`: `statuses, recruiterId, teamId, overdue`, with recruiter scope by the consultant's current recruiter.
-- [ ] T087 [US4] Extend `backend/src/main/java/com/ensar/clmp/lifecycle/ConsultantLifecycleService.java`:
+- [X] T087 [US4] Extend `backend/src/main/java/com/ensar/clmp/lifecycle/ConsultantLifecycleService.java`:
   - Add `onMarketingActivatedOrReopened(assignment, event, actor)`: a READY consultant becomes MARKETING. No change if already MARKETING or INTERVIEWING.
   - Add `onMarketingClosed(assignment, actor)`: a MARKETING consultant becomes READY. No change if INTERVIEWING.
   - Implement `cascadeOnHold`: an ACTIVE assignment becomes HOLD with a system-triggered `CONSULTANT_HOLD` history row.
   - Implement `cascadeOnInactive`: an open assignment becomes CLOSED with reason "Consultant inactive" and a `CONSULTANT_INACTIVE` row.
   - Every automatic change writes a history row with `TriggerRef` (FR-032, FR-036).
-- [ ] T088 [US4] Create `backend/src/main/java/com/ensar/clmp/marketing/service/MarketingService.java`:
+- [X] T088 [US4] Create `backend/src/main/java/com/ensar/clmp/marketing/service/MarketingService.java`:
   - `create(request, actor)`: lock the consultant (`findByIdForUpdate`). The consultant status MUST be READY, else 422 `CONSULTANT_NOT_ELIGIBLE` with `consultantStatus` (FR-040). FR-042 is checked, else 409 `OPEN_ASSIGNMENT_EXISTS` with `existingRecordId`. Add both codes to `ErrorCode`. The owner defaults to the current recruiter and the team is derived. `target ≥ start` (400 on `targetDate`). Writes a CREATED history row.
   - `updateDates`
   - `transition(id, target, reason, version, actor)`, under the consultant lock:
@@ -509,15 +509,15 @@ page shows the marketing panel (quickstart V4).
     - CLOSED→ACTIVE requires READY, close_reason ≠ "Placed", and FR-042.
     - Then it calls the lifecycle hooks.
   - `addNote`, `getDetail` (with `allowedTransitions` and notes), and `list`.
-- [ ] T089 [US4] Fill in `ConsultantAssignmentService.transferOpenMarketingOwnership` in `backend/src/main/java/com/ensar/clmp/consultant/service/ConsultantAssignmentService.java`. It sets the open assignment's `owner_recruiter_id` and `owner_team_id` to the new recruiter and writes an OWNER_TRANSFER history row in the same transaction.
-- [ ] T090 [US4] Create the marketing DTOs in `backend/src/main/java/com/ensar/clmp/marketing/web/`: `MarketingCreateRequest.java` (`consultantId` `@NotNull`, `ownerRecruiterId`, `startDate` `@NotNull`, `targetDate` `@NotNull`), `MarketingDatesRequest.java`, `MarketingTransitionRequest.java` (`targetStatus` `@NotNull`, `reason`, `version` `@NotNull`), `NoteRequest.java` (`body` `@NotBlank @Size(max=2000)`), `NoteResponse.java`, `MarketingListItem.java`, and `MarketingDetail.java`. Then create `marketing/web/MarketingController.java` with every `/api/marketing-assignments` endpoint and the `@PreAuthorize` rules from the matrix (create, PUT, and notes exclude MANAGER; transition allows MANAGER, with the service enforcing which transitions). Sort allowlist: `targetDate, startDate, status`. Add `marketingStatuses` to `ReferenceController`.
-- [ ] T091 [US4] Fill `currentMarketingAssignment` (`id, status, targetDate, overdue`) in `ConsultantDetail` for non-HR viewers in `backend/src/main/java/com/ensar/clmp/consultant/service/ConsultantService.java`, and extend `DemoDataSeeder.seedMarketing()` with Active, Hold, and Closed assignments, including one overdue.
-- [ ] T092 [P] [US4] Create `frontend/src/api/marketing.ts`, covering all marketing endpoints and types (appended to `types.ts`), and add `MarketingStatus` labels to `frontend/src/labels.ts`.
-- [ ] T093 [US4] Create `frontend/src/pages/marketing/MarketingListPage.tsx`, with status, recruiter, and team filters. Columns: consultant, owner recruiter, team, start date, target date, `StatusBadge`, and an Overdue flag.
-- [ ] T094 [US4] Create `frontend/src/pages/marketing/MarketingFormPage.tsx` (`/marketing/new?consultantId=`, with start and target dates and inline errors; on 409 `OPEN_ASSIGNMENT_EXISTS` it shows a link to `/marketing/{existingRecordId}`; 422 `CONSULTANT_NOT_ELIGIBLE` shows "Consultant must be Ready").
-- [ ] T095 [US4] Create `frontend/src/pages/marketing/MarketingDetailPage.tsx`. Transition buttons come from `allowedTransitions`, and HOLD and CLOSED use a `ReasonDialog`. Editing dates and the append-only notes list with an add form are hidden unless `canCreateMarketing`. It also shows `HistoryList` and the hold and close reasons.
-- [ ] T096 [US4] Render the **Marketing panel** in `frontend/src/pages/consultants/ConsultantDetailPage.tsx`. It shows `currentMarketingAssignment` (status badge, target date, Overdue flag, link to `/marketing/{id}`), or "No open marketing assignment", plus a "Start marketing" action when `canCreateMarketing`, the consultant is READY, and there is no open assignment. The panel is not rendered for HR_OPERATIONS (`canSeeCommercialDetails` false).
-- [ ] T097 [US4] Run `./mvnw verify` and `npm test -- --run && npm run build`, and walk through quickstart V4.
+- [X] T089 [US4] Fill in `ConsultantAssignmentService.transferOpenMarketingOwnership` in `backend/src/main/java/com/ensar/clmp/consultant/service/ConsultantAssignmentService.java`. It sets the open assignment's `owner_recruiter_id` and `owner_team_id` to the new recruiter and writes an OWNER_TRANSFER history row in the same transaction.
+- [X] T090 [US4] Create the marketing DTOs in `backend/src/main/java/com/ensar/clmp/marketing/web/`: `MarketingCreateRequest.java` (`consultantId` `@NotNull`, `ownerRecruiterId`, `startDate` `@NotNull`, `targetDate` `@NotNull`), `MarketingDatesRequest.java`, `MarketingTransitionRequest.java` (`targetStatus` `@NotNull`, `reason`, `version` `@NotNull`), `NoteRequest.java` (`body` `@NotBlank @Size(max=2000)`), `NoteResponse.java`, `MarketingListItem.java`, and `MarketingDetail.java`. Then create `marketing/web/MarketingController.java` with every `/api/marketing-assignments` endpoint and the `@PreAuthorize` rules from the matrix (create, PUT, and notes exclude MANAGER; transition allows MANAGER, with the service enforcing which transitions). Sort allowlist: `targetDate, startDate, status`. Add `marketingStatuses` to `ReferenceController`.
+- [X] T091 [US4] Fill `currentMarketingAssignment` (`id, status, targetDate, overdue`) in `ConsultantDetail` for non-HR viewers in `backend/src/main/java/com/ensar/clmp/consultant/service/ConsultantService.java`, and extend `DemoDataSeeder.seedMarketing()` with Active, Hold, and Closed assignments, including one overdue.
+- [X] T092 [P] [US4] Create `frontend/src/api/marketing.ts`, covering all marketing endpoints and types (appended to `types.ts`), and add `MarketingStatus` labels to `frontend/src/labels.ts`.
+- [X] T093 [US4] Create `frontend/src/pages/marketing/MarketingListPage.tsx`, with status, recruiter, and team filters. Columns: consultant, owner recruiter, team, start date, target date, `StatusBadge`, and an Overdue flag.
+- [X] T094 [US4] Create `frontend/src/pages/marketing/MarketingFormPage.tsx` (`/marketing/new?consultantId=`, with start and target dates and inline errors; on 409 `OPEN_ASSIGNMENT_EXISTS` it shows a link to `/marketing/{existingRecordId}`; 422 `CONSULTANT_NOT_ELIGIBLE` shows "Consultant must be Ready").
+- [X] T095 [US4] Create `frontend/src/pages/marketing/MarketingDetailPage.tsx`. Transition buttons come from `allowedTransitions`, and HOLD and CLOSED use a `ReasonDialog`. Editing dates and the append-only notes list with an add form are hidden unless `canCreateMarketing`. It also shows `HistoryList` and the hold and close reasons.
+- [X] T096 [US4] Render the **Marketing panel** in `frontend/src/pages/consultants/ConsultantDetailPage.tsx`. It shows `currentMarketingAssignment` (status badge, target date, Overdue flag, link to `/marketing/{id}`), or "No open marketing assignment", plus a "Start marketing" action when `canCreateMarketing`, the consultant is READY, and there is no open assignment. The panel is not rendered for HR_OPERATIONS (`canSeeCommercialDetails` false).
+- [X] T097 [US4] Run `./mvnw verify` and `npm test -- --run && npm run build`, and walk through quickstart V4.
 
 **Checkpoint**: The Ready → Marketing → Ready loop works with automatic consultant transitions.
 

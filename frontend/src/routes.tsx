@@ -9,6 +9,9 @@ import ConsultantFormPage from './pages/consultants/ConsultantFormPage';
 import ConsultantListPage from './pages/consultants/ConsultantListPage';
 import DashboardPage from './pages/dashboard/DashboardPage';
 import LoginPage from './pages/login/LoginPage';
+import MarketingDetailPage from './pages/marketing/MarketingDetailPage';
+import MarketingFormPage from './pages/marketing/MarketingFormPage';
+import MarketingListPage from './pages/marketing/MarketingListPage';
 import RecruiterDetailPage from './pages/recruiters/RecruiterDetailPage';
 import RecruiterFormPage from './pages/recruiters/RecruiterFormPage';
 import RecruiterListPage from './pages/recruiters/RecruiterListPage';
@@ -40,9 +43,9 @@ export const APP_ROUTES: AppRoute[] = [
   { path: '/consultants/new', roles: ROUTE_ROLES.consultantEditors, element: <ConsultantFormPage /> },
   { path: '/consultants/:id/edit', roles: ROUTE_ROLES.consultantEditors, element: <ConsultantFormPage /> },
   { path: '/consultants/:id', roles: ROUTE_ROLES.all, element: <ConsultantDetailPage /> },
-  { path: '/marketing', roles: ROUTE_ROLES.commercial, element: <Placeholder title="Marketing" /> },
-  { path: '/marketing/new', roles: ROUTE_ROLES.marketingCreators, element: <Placeholder title="New marketing" /> },
-  { path: '/marketing/:id', roles: ROUTE_ROLES.commercial, element: <Placeholder title="Marketing assignment" /> },
+  { path: '/marketing', roles: ROUTE_ROLES.commercial, element: <MarketingListPage /> },
+  { path: '/marketing/new', roles: ROUTE_ROLES.marketingCreators, element: <MarketingFormPage /> },
+  { path: '/marketing/:id', roles: ROUTE_ROLES.commercial, element: <MarketingDetailPage /> },
   { path: '/submissions', roles: ROUTE_ROLES.commercial, element: <Placeholder title="Submissions" /> },
   {
     path: '/submissions/new',

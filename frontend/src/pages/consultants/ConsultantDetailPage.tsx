@@ -17,6 +17,7 @@ import {
   CONSULTANT_STATUS_LABELS,
   formatDate,
   label,
+  MARKETING_STATUS_LABELS,
   missingItemLabel,
   VISA_TYPE_LABELS,
 } from '../../labels';
@@ -215,6 +216,44 @@ function AssignedRecruiter({ consultant }: { consultant: ConsultantDetail }) {
  * Marketing, Submissions, and Placements panels (US4–US6). Never rendered for HR_OPERATIONS;
  * the API also omits the data (FR-064).
  */
-function CommercialPanels(_props: { consultant: ConsultantDetail }) {
-  return null;
+function CommercialPanels({ consultant }: { consultant: ConsultantDetail }) {
+  return (
+    <>
+      <MarketingPanel consultant={consultant} />
+    </>
+  );
+}
+
+function MarketingPanel({ consultant }: { consultant: ConsultantDetail }) {
+  const { user } = useAuth();
+  const m = consultant.currentMarketingAssignment;
+  return (
+    <section className="card" aria-labelledby="marketing-heading">
+      <h2 id="marketing-heading">Marketing</h2>
+      {m ? (
+        <dl className="field-list">
+          <dt>Status</dt>
+          <dd>
+            <StatusBadge status={m.status} label={MARKETING_STATUS_LABELS[m.status]} />{' '}
+            {m.overdue && <Badge tone="danger">Overdue</Badge>}
+          </dd>
+          <dt>Target date</dt>
+          <dd>{formatDate(m.targetDate)}</dd>
+          <dt />
+          <dd>
+            <Link to={`/marketing/${m.id}`}>View assignment</Link>
+          </dd>
+        </dl>
+      ) : (
+        <>
+          <p className="muted">No open marketing assignment</p>
+          {can.createMarketing(user?.role) && consultant.status === 'READY' && (
+            <Link className="button primary" to={`/marketing/new?consultantId=${consultant.id}`}>
+              Start marketing
+            </Link>
+          )}
+        </>
+      )}
+    </section>
+  );
 }

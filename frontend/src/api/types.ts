@@ -81,6 +81,7 @@ export interface ReferenceData {
   regions: ReferenceItem[];
   visaTypes: VisaType[];
   consultantStatuses: ConsultantStatus[];
+  marketingStatuses?: MarketingStatus[];
 }
 
 export type ChangeType =
@@ -102,8 +103,22 @@ export interface HistoryEntry {
   newValue: string | null;
   reason: string | null;
   note: string | null;
+  systemTriggered?: boolean;
+  trigger?: { event: TriggerEvent; entityType: HistoryEntityType | null; entityId: number | null } | null;
   description: string;
 }
+
+export type TriggerEvent =
+  | 'MARKETING_ACTIVATED'
+  | 'MARKETING_REOPENED'
+  | 'MARKETING_CLOSED'
+  | 'SUBMISSION_INTERVIEW_SCHEDULED'
+  | 'SUBMISSION_LEFT_INTERVIEW_STAGES'
+  | 'PLACEMENT_CREATED'
+  | 'CONSULTANT_HOLD'
+  | 'CONSULTANT_INACTIVE';
+
+export type HistoryEntityType = 'CONSULTANT' | 'RECRUITER' | 'MARKETING_ASSIGNMENT' | 'SUBMISSION' | 'PLACEMENT';
 
 export interface ConsultantListItem {
   id: number;
@@ -139,6 +154,7 @@ export interface ConsultantDetail {
   contact?: ConsultantContact;
   allowedStatusTransitions: ConsultantStatus[];
   missingReadinessItems: string[];
+  currentMarketingAssignment?: MarketingSummary;
   version: number;
 }
 
@@ -191,4 +207,41 @@ export interface RecruiterRequest {
   regionId: number | null;
   linkedUserId?: number | null;
   version?: number;
+}
+
+// ---- US4: marketing ----
+
+export type MarketingStatus = 'DRAFT' | 'ACTIVE' | 'HOLD' | 'CLOSED';
+
+export interface MarketingSummary {
+  id: number;
+  status: MarketingStatus;
+  targetDate: string;
+  overdue: boolean;
+}
+
+export interface Note {
+  id: number;
+  body: string;
+  author: string;
+  createdAt: string;
+}
+
+export interface MarketingListItem {
+  id: number;
+  consultant: IdFullName;
+  ownerRecruiter: IdFullName;
+  team: IdName;
+  startDate: string;
+  targetDate: string;
+  status: MarketingStatus;
+  overdue: boolean;
+}
+
+export interface MarketingDetail extends MarketingListItem {
+  holdReason: string | null;
+  closeReason: string | null;
+  notes: Note[];
+  allowedTransitions: MarketingStatus[];
+  version: number;
 }

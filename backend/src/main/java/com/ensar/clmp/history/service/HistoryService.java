@@ -44,6 +44,16 @@ public class HistoryService {
                 .values(oldStatus, newStatus).reason(blankToNull(reason)).note(blankToNull(note)), actor);
     }
 
+    /** A system-triggered status change caused by {@code trigger} (FR-032, FR-036). */
+    public void recordSystemStatusChange(HistoryEntityType entityType, Long entityId, Long consultantId,
+            Long ownerRecruiterId, String oldStatus, String newStatus, String reason, CurrentUser actor,
+            TriggerRef trigger) {
+        save(HistoryRecord.builder(entityType, entityId, ChangeType.STATUS)
+                .consultant(consultantId).ownerRecruiter(ownerRecruiterId)
+                .values(oldStatus, newStatus).reason(blankToNull(reason))
+                .trigger(trigger.event(), trigger.entityType(), trigger.entityId()), actor);
+    }
+
     public void recordRecruiterAssignment(Long consultantId, String oldRecruiterName, String newRecruiterName,
             CurrentUser actor) {
         save(HistoryRecord.builder(HistoryEntityType.CONSULTANT, consultantId, ChangeType.RECRUITER_ASSIGNMENT)

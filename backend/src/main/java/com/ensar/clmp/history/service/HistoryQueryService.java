@@ -13,6 +13,7 @@ import com.ensar.clmp.auth.CurrentUser;
 import com.ensar.clmp.history.domain.HistoryEntityType;
 import com.ensar.clmp.history.domain.HistoryRecord;
 import com.ensar.clmp.history.domain.HistoryRecordRepository;
+import com.ensar.clmp.history.domain.TriggerEvent;
 import com.ensar.clmp.history.web.HistoryEntry;
 
 /** Reads history for display. Callers check that the viewer may see the entity first. */
@@ -35,11 +36,18 @@ public class HistoryQueryService {
     }
 
     HistoryEntry toEntry(HistoryRecord r, CurrentUser viewer) {
+        HistoryEntry.Trigger trigger = r.isSystemTriggered()
+                ? new HistoryEntry.Trigger(r.getTriggerEvent(), r.getTriggerEntityType(), r.getTriggerEntityId())
+                : null;
         return new HistoryEntry(r.getId(), r.getOccurredAt(), r.getActorDisplayName(), r.getChangeType(),
-                r.getFieldName(), r.getOldValue(), r.getNewValue(), r.getReason(), r.getNote(), describe(r));
+                r.getFieldName(), r.getOldValue(), r.getNewValue(), r.getReason(), r.getNote(), r.isSystemTriggered(),
+                trigger, describe(r));
     }
 
     static String describe(HistoryRecord r) {
+        if (r.isSystemTriggered()) {
+            return triggerDescription(r.getTriggerEvent());
+        }
         String entity = entityLabel(r.getEntityType());
         return switch (r.getChangeType()) {
             case CREATED -> r.getNewValue() == null ? entity + " created"
@@ -52,6 +60,20 @@ public class HistoryQueryService {
             case FIELD_EDIT -> fieldLabel(r.getFieldName()) + " changed from " + r.getOldValue() + " to "
                     + r.getNewValue();
             case NOTE_ADDED -> "Note added";
+        };
+    }
+
+    /** Generic description of a trigger; never mentions vendors, clients, or rates. */
+    static String triggerDescription(TriggerEvent event) {
+        return switch (event) {
+            case MARKETING_ACTIVATED -> "Marketing activated";
+            case MARKETING_REOPENED -> "Marketing reopened";
+            case MARKETING_CLOSED -> "Marketing closed";
+            case SUBMISSION_INTERVIEW_SCHEDULED -> "Submission moved to Interview Scheduled";
+            case SUBMISSION_LEFT_INTERVIEW_STAGES -> "No submissions remain in interview or offer stages";
+            case PLACEMENT_CREATED -> "Placement created";
+            case CONSULTANT_HOLD -> "Consultant put on Hold";
+            case CONSULTANT_INACTIVE -> "Consultant set to Inactive";
         };
     }
 

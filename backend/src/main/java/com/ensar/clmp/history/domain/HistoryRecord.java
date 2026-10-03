@@ -69,6 +69,20 @@ public class HistoryRecord {
     @Column(name = "occurred_at", nullable = false, updatable = false)
     private Instant occurredAt;
 
+    @Column(name = "system_triggered", nullable = false, updatable = false)
+    private boolean systemTriggered;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "trigger_event", updatable = false, length = 40)
+    private TriggerEvent triggerEvent;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "trigger_entity_type", updatable = false, length = 30)
+    private HistoryEntityType triggerEntityType;
+
+    @Column(name = "trigger_entity_id", updatable = false)
+    private Long triggerEntityId;
+
     protected HistoryRecord() {
     }
 
@@ -86,6 +100,10 @@ public class HistoryRecord {
         this.actorUserId = b.actorUserId;
         this.actorDisplayName = b.actorDisplayName;
         this.occurredAt = b.occurredAt;
+        this.systemTriggered = b.triggerEvent != null;
+        this.triggerEvent = b.triggerEvent;
+        this.triggerEntityType = b.triggerEntityType;
+        this.triggerEntityId = b.triggerEntityId;
     }
 
     public static Builder builder(HistoryEntityType entityType, Long entityId, ChangeType changeType) {
@@ -152,6 +170,22 @@ public class HistoryRecord {
         return occurredAt;
     }
 
+    public boolean isSystemTriggered() {
+        return systemTriggered;
+    }
+
+    public TriggerEvent getTriggerEvent() {
+        return triggerEvent;
+    }
+
+    public HistoryEntityType getTriggerEntityType() {
+        return triggerEntityType;
+    }
+
+    public Long getTriggerEntityId() {
+        return triggerEntityId;
+    }
+
     /** Collects the fields of one new row; only HistoryService builds rows. */
     public static final class Builder {
         private final HistoryEntityType entityType;
@@ -167,6 +201,9 @@ public class HistoryRecord {
         private Long actorUserId;
         private String actorDisplayName;
         private Instant occurredAt;
+        private TriggerEvent triggerEvent;
+        private HistoryEntityType triggerEntityType;
+        private Long triggerEntityId;
 
         private Builder(HistoryEntityType entityType, Long entityId, ChangeType changeType) {
             this.entityType = entityType;
@@ -213,6 +250,14 @@ public class HistoryRecord {
 
         public Builder at(Instant occurredAt) {
             this.occurredAt = occurredAt;
+            return this;
+        }
+
+        /** Marks the row system-triggered by {@code event} on the given record (FR-036). */
+        public Builder trigger(TriggerEvent event, HistoryEntityType entityType, Long entityId) {
+            this.triggerEvent = event;
+            this.triggerEntityType = entityType;
+            this.triggerEntityId = entityId;
             return this;
         }
 

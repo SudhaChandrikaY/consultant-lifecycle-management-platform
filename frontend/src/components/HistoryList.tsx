@@ -12,7 +12,19 @@ export default function HistoryList({ entries, emptyMessage = 'No history yet.' 
     <ul className="history">
       {entries.map((e) => (
         <li key={e.id}>
-          <div>{e.description}</div>
+          <div>
+            {e.description}
+            {e.systemTriggered && (
+              <span className="badge badge--info" style={{ marginLeft: 8 }} title="Changed automatically">
+                system
+              </span>
+            )}
+          </div>
+          {e.changeType === 'STATUS' && e.systemTriggered && (
+            <div className="small muted">
+              {e.oldValue} → {e.newValue}
+            </div>
+          )}
           <div className="history__meta">
             {e.actor} · {formatDateTime(e.occurredAt)}
           </div>

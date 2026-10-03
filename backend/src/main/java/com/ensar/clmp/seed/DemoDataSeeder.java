@@ -2,6 +2,7 @@ package com.ensar.clmp.seed;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.time.LocalDate;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +26,10 @@ import com.ensar.clmp.consultant.service.ConsultantAssignmentService;
 import com.ensar.clmp.consultant.service.ConsultantService;
 import com.ensar.clmp.consultant.web.ConsultantRequest;
 import com.ensar.clmp.lifecycle.ConsultantLifecycleService;
+import com.ensar.clmp.marketing.domain.MarketingAssignmentRepository;
+import com.ensar.clmp.marketing.domain.MarketingStatus;
+import com.ensar.clmp.marketing.service.MarketingService;
+import com.ensar.clmp.marketing.web.MarketingCreateRequest;
 import com.ensar.clmp.recruiter.domain.Recruiter;
 import com.ensar.clmp.recruiter.domain.RecruiterRepository;
 import com.ensar.clmp.reference.domain.Region;
@@ -58,11 +63,14 @@ public class DemoDataSeeder implements ApplicationRunner {
     private final ConsultantService consultantService;
     private final ConsultantLifecycleService lifecycle;
     private final ConsultantAssignmentService assignment;
+    private final MarketingService marketingService;
+    private final MarketingAssignmentRepository marketing;
 
     public DemoDataSeeder(Environment environment, PasswordEncoder passwordEncoder, Clock clock,
             TeamRepository teams, RegionRepository regions, AppUserRepository users,
             RecruiterRepository recruiters, ConsultantRepository consultants, ConsultantService consultantService,
-            ConsultantLifecycleService lifecycle, ConsultantAssignmentService assignment) {
+            ConsultantLifecycleService lifecycle, ConsultantAssignmentService assignment,
+            MarketingService marketingService, MarketingAssignmentRepository marketing) {
         this.environment = environment;
         this.passwordEncoder = passwordEncoder;
         this.clock = clock;
@@ -74,6 +82,8 @@ public class DemoDataSeeder implements ApplicationRunner {
         this.consultantService = consultantService;
         this.lifecycle = lifecycle;
         this.assignment = assignment;
+        this.marketingService = marketingService;
+        this.marketing = marketing;
     }
 
     @Override
@@ -89,6 +99,7 @@ public class DemoDataSeeder implements ApplicationRunner {
         seedReference();
         seedUsersAndRecruiters();
         seedConsultants();
+        seedMarketing();
         log.info("Demo data seeded.");
     }
 
@@ -168,6 +179,48 @@ public class DemoDataSeeder implements ApplicationRunner {
             setStatus(id, target, reason);
         }
         return id;
+    }
+
+    /**
+     * Active (one overdue), Hold, and Closed marketing assignments. Meera Iyer stays Ready with no
+     * assignment so the US4 walkthrough can start one.
+     */
+    private void seedMarketing() {
+        LocalDate today = LocalDate.now(clock);
+        Long vikram = consultantId("Vikram");
+        Long sofia = consultantId("Sofia");
+        Long li = consultantId("Li");
+        Long ana = consultantId("Ana");
+
+        Long overdue = startMarketing(vikram, "recruiter1", today.minusDays(30), today.minusDays(3));
+        transitionMarketing(overdue, MarketingStatus.ACTIVE, null, "recruiter1");
+
+        Long held = startMarketing(sofia, "recruiter1", today.minusDays(10), today.plusDays(20));
+        transitionMarketing(held, MarketingStatus.ACTIVE, null, "recruiter1");
+        transitionMarketing(held, MarketingStatus.HOLD, "Client hiring freeze until next quarter", "recruiter1");
+
+        Long active = startMarketing(li, "recruiter2", today.minusDays(7), today.plusDays(30));
+        transitionMarketing(active, MarketingStatus.ACTIVE, null, "recruiter2");
+        marketingService.addNote(active, "Shared profile with three Data vendors.", actor("recruiter2"));
+
+        Long closed = startMarketing(ana, "admin", today.minusDays(40), today.minusDays(10));
+        transitionMarketing(closed, MarketingStatus.ACTIVE, null, "admin");
+        transitionMarketing(closed, MarketingStatus.CLOSED, "Paused at the consultant's request", "admin");
+    }
+
+    private Long startMarketing(Long consultantId, String username, LocalDate start, LocalDate target) {
+        return marketingService.create(new MarketingCreateRequest(consultantId, null, start, target), actor(username))
+                .id();
+    }
+
+    private void transitionMarketing(Long id, MarketingStatus target, String reason, String username) {
+        long version = marketing.findById(id).orElseThrow().getVersion();
+        marketingService.transition(id, target, reason, version, actor(username));
+    }
+
+    private Long consultantId(String firstName) {
+        return consultants.findAll().stream().filter(c -> c.getFirstName().equals(firstName)).findFirst()
+                .orElseThrow().getId();
     }
 
     private Long create(ConsultantRequest request) {

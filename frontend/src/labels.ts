@@ -1,5 +1,5 @@
 // Display labels for API enum codes. Each story extends this file.
-import type { ConsultantStatus, VisaType } from './api/types';
+import type { ConsultantStatus, MarketingStatus, VisaType } from './api/types';
 
 const READINESS_ITEM_LABELS: Record<string, string> = {
   firstName: 'First name',
@@ -73,3 +73,10 @@ export function formatDateTime(value: string | null | undefined): string {
   if (!value) return '—';
   return new Date(value).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
 }
+
+export const MARKETING_STATUS_LABELS: Record<MarketingStatus, string> = {
+  DRAFT: 'Draft',
+  ACTIVE: 'Active',
+  HOLD: 'Hold',
+  CLOSED: 'Closed',
+};

@@ -29,7 +29,12 @@ import com.ensar.clmp.consultant.domain.ConsultantRepository;
 import com.ensar.clmp.consultant.domain.ConsultantStatus;
 import com.ensar.clmp.consultant.service.ReadinessChecker;
 import com.ensar.clmp.history.domain.HistoryEntityType;
+import com.ensar.clmp.history.domain.TriggerEvent;
 import com.ensar.clmp.history.service.HistoryService;
+import com.ensar.clmp.history.service.TriggerRef;
+import com.ensar.clmp.marketing.domain.MarketingAssignment;
+import com.ensar.clmp.marketing.domain.MarketingAssignmentRepository;
+import com.ensar.clmp.marketing.domain.MarketingStatus;
 
 /**
  * The single owner of consultant status rules (research R9): the manual transition table
@@ -56,14 +61,16 @@ public class ConsultantLifecycleService {
     private static final Set<ConsultantStatus> REASON_REQUIRED = Set.of(HOLD, INACTIVE);
 
     private final ConsultantRepository consultants;
+    private final MarketingAssignmentRepository marketing;
     private final HistoryService history;
     private final ReadinessChecker readiness;
     private final VersionGuard versionGuard;
     private final Clock clock;
 
-    public ConsultantLifecycleService(ConsultantRepository consultants, HistoryService history,
-            ReadinessChecker readiness, VersionGuard versionGuard, Clock clock) {
+    public ConsultantLifecycleService(ConsultantRepository consultants, MarketingAssignmentRepository marketing,
+            HistoryService history, ReadinessChecker readiness, VersionGuard versionGuard, Clock clock) {
         this.consultants = consultants;
+        this.marketing = marketing;
         this.history = history;
         this.readiness = readiness;
         this.versionGuard = versionGuard;
@@ -123,6 +130,44 @@ public class ConsultantLifecycleService {
         return MANUAL.getOrDefault(consultant.getStatus(), List.of());
     }
 
+    // ---- Automatic transitions (FR-032, FR-036) ----
+
+    /** Activation or reopen of marketing: a Ready consultant becomes Marketing. */
+    public void onMarketingActivatedOrReopened(MarketingAssignment assignment, TriggerEvent event, CurrentUser actor) {
+        Consultant consultant = assignment.getConsultant();
+        if (consultant.getStatus() == READY) {
+            applyAutomatic(consultant, MARKETING, actor,
+                    new TriggerRef(event, HistoryEntityType.MARKETING_ASSIGNMENT, assignment.getId()));
+        }
+    }
+
+    /** Closing marketing without a placement: a Marketing consultant returns to Ready. */
+    public void onMarketingClosed(MarketingAssignment assignment, CurrentUser actor) {
+        Consultant consultant = assignment.getConsultant();
+        if (consultant.getStatus() == MARKETING) {
+            applyAutomatic(consultant, READY, actor, new TriggerRef(TriggerEvent.MARKETING_CLOSED,
+                    HistoryEntityType.MARKETING_ASSIGNMENT, assignment.getId()));
+        }
+    }
+
+    private void applyAutomatic(Consultant consultant, ConsultantStatus target, CurrentUser actor,
+            TriggerRef trigger) {
+        ConsultantStatus from = consultant.getStatus();
+        consultant.changeStatus(target, clock.instant());
+        history.recordSystemStatusChange(HistoryEntityType.CONSULTANT, consultant.getId(), consultant.getId(), null,
+                from.name(), target.name(), null, actor, trigger);
+    }
+
+    /** Moves a marketing assignment as a side effect of another record's change. */
+    private void applyToMarketing(MarketingAssignment assignment, MarketingStatus target, String reason,
+            CurrentUser actor, TriggerRef trigger) {
+        MarketingStatus from = assignment.getStatus();
+        assignment.changeStatus(target, reason, clock.instant());
+        history.recordSystemStatusChange(HistoryEntityType.MARKETING_ASSIGNMENT, assignment.getId(),
+                assignment.getConsultant().getId(), assignment.getOwnerRecruiter().getId(), from.name(), target.name(),
+                reason, actor, trigger);
+    }
+
     private void apply(Consultant consultant, ConsultantStatus target, String reason, CurrentUser actor) {
         ConsultantStatus from = consultant.getStatus();
         consultant.changeStatus(target, clock.instant());
@@ -140,13 +185,19 @@ public class ConsultantLifecycleService {
         // No placements exist before US6.
     }
 
-    /** Consultant on Hold puts an Active marketing assignment on Hold. Filled in by US4. */
+    /** Consultant on Hold puts an Active marketing assignment on Hold (FR-032). */
     private void cascadeOnHold(Consultant consultant, CurrentUser actor) {
-        // No marketing assignments exist before US4.
+        marketing.findOpenFor(consultant.getId())
+                .filter(a -> a.getStatus() == MarketingStatus.ACTIVE)
+                .ifPresent(a -> applyToMarketing(a, MarketingStatus.HOLD, "Consultant put on Hold", actor,
+                        new TriggerRef(TriggerEvent.CONSULTANT_HOLD, HistoryEntityType.CONSULTANT, consultant.getId())));
     }
 
-    /** Consultant Inactive closes the open marketing assignment. Filled in by US4. */
+    /** Consultant Inactive closes the open marketing assignment with reason "Consultant inactive" (FR-032). */
     private void cascadeOnInactive(Consultant consultant, CurrentUser actor) {
-        // No marketing assignments exist before US4.
+        marketing.findOpenFor(consultant.getId())
+                .ifPresent(a -> applyToMarketing(a, MarketingStatus.CLOSED, MarketingAssignment.INACTIVE_REASON, actor,
+                        new TriggerRef(TriggerEvent.CONSULTANT_INACTIVE, HistoryEntityType.CONSULTANT,
+                                consultant.getId())));
     }
 }
