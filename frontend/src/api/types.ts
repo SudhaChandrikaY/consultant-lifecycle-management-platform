@@ -401,3 +401,54 @@ export interface Dashboard {
   recruiterPerformance?: RecruiterPerformanceRow[];
   recentActivity: HistoryEntry[];
 }
+
+// ---- US8: reports ----
+
+export type ReportLinks = Record<string, CountLink>;
+
+export interface SubmissionsByRecruiterReport {
+  from: string;
+  to: string;
+  rows: { recruiterId: number; recruiterName: string; total: number; byStatus: Partial<Record<SubmissionStatus, number>>; links: ReportLinks }[];
+  totals: { total: number; byStatus: Partial<Record<SubmissionStatus, number>> };
+  empty: boolean;
+}
+
+export interface PlacementsByRecruiterReport {
+  from: string;
+  to: string;
+  rows: { recruiterId: number; recruiterName: string; placements: number; links: ReportLinks }[];
+  totals: { placements: number };
+  empty: boolean;
+}
+
+export interface ConsultantPipelineReport {
+  rows: { status: ConsultantStatus; count: number; links: ReportLinks }[];
+  total: number;
+  empty: boolean;
+}
+
+export interface BenchReadyReport {
+  bench: number;
+  ready: number;
+  asOf: string;
+  links: ReportLinks;
+  empty: boolean;
+}
+
+export interface VendorClientRow {
+  id: number;
+  name: string;
+  submissions: number;
+  interviewsScheduled: number;
+  placements: number;
+  links: ReportLinks;
+}
+
+export interface VendorClientActivityReport {
+  from: string;
+  to: string;
+  vendors: VendorClientRow[];
+  clients: VendorClientRow[];
+  empty: boolean;
+}

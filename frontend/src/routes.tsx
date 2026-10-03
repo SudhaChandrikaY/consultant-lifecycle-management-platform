@@ -3,7 +3,6 @@ import { Route, Routes } from 'react-router';
 import type { Role } from './api/types';
 import { ROUTE_ROLES } from './auth/permissions';
 import RequireRole from './auth/RequireRole';
-import PageLayout from './components/PageLayout';
 import ConsultantDetailPage from './pages/consultants/ConsultantDetailPage';
 import ConsultantFormPage from './pages/consultants/ConsultantFormPage';
 import ConsultantListPage from './pages/consultants/ConsultantListPage';
@@ -15,6 +14,7 @@ import MarketingListPage from './pages/marketing/MarketingListPage';
 import PlacementDetailPage from './pages/placements/PlacementDetailPage';
 import PlacementFormPage from './pages/placements/PlacementFormPage';
 import PlacementListPage from './pages/placements/PlacementListPage';
+import ReportsPage from './pages/reports/ReportsPage';
 import RecruiterDetailPage from './pages/recruiters/RecruiterDetailPage';
 import RecruiterFormPage from './pages/recruiters/RecruiterFormPage';
 import RecruiterListPage from './pages/recruiters/RecruiterListPage';
@@ -22,15 +22,6 @@ import SubmissionDetailPage from './pages/submissions/SubmissionDetailPage';
 import SubmissionFormPage from './pages/submissions/SubmissionFormPage';
 import SubmissionListPage from './pages/submissions/SubmissionListPage';
 import NotFound from './pages/NotFound';
-
-/** Minimal placeholder for areas delivered by later stories. */
-function Placeholder({ title }: { title: string }) {
-  return (
-    <PageLayout title={title}>
-      <div className="card muted">This area is not available yet.</div>
-    </PageLayout>
-  );
-}
 
 interface AppRoute {
   path: string;
@@ -58,7 +49,7 @@ export const APP_ROUTES: AppRoute[] = [
   { path: '/placements', roles: ROUTE_ROLES.commercial, element: <PlacementListPage /> },
   { path: '/placements/new', roles: ROUTE_ROLES.placementCreators, element: <PlacementFormPage /> },
   { path: '/placements/:id', roles: ROUTE_ROLES.commercial, element: <PlacementDetailPage /> },
-  { path: '/reports', roles: ROUTE_ROLES.adminManager, element: <Placeholder title="Reports" /> },
+  { path: '/reports', roles: ROUTE_ROLES.adminManager, element: <ReportsPage /> },
 ];
 
 export default function AppRoutes() {

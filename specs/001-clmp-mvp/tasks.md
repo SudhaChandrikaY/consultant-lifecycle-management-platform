@@ -808,7 +808,7 @@ underlying lists (quickstart V8).
 
 ### Tests for User Story 8
 
-- [ ] T142 [P] [US8] Write `backend/src/test/java/com/ensar/clmp/it/US8ReportsIT.java`:
+- [X] T142 [P] [US8] Write `backend/src/test/java/com/ensar/clmp/it/US8ReportsIT.java`:
   - AS 8.1: Submissions by Recruiter, counted by `submitted_date` in range, with the current-status breakdown.
   - AS 8.2: Placements by Recruiter, by `created_at` date.
   - AS 8.3: Consultant Pipeline returns all 8 statuses, including zeros.
@@ -820,18 +820,18 @@ underlying lists (quickstart V8).
   - Defaults to the current month when `from`/`to` are omitted (FR-091).
   - `from > to` returns 400.
   - Recruiter and hr get 403.
-- [ ] T143 [P] [US8] Write `backend/src/test/java/com/ensar/clmp/consistency/ReportListConsistencyIT.java`. For every report cell with a `link`, including Vendor/Client `interviewsScheduled` (`status=INTERVIEW_SCHEDULED&vendorId|clientId=…&submittedFrom=…&submittedTo=…`), the linked list's `totalItems` must equal the cell's count (FR-092, SC-006).
+- [X] T143 [P] [US8] Write `backend/src/test/java/com/ensar/clmp/consistency/ReportListConsistencyIT.java`. For every report cell with a `link`, including Vendor/Client `interviewsScheduled` (`status=INTERVIEW_SCHEDULED&vendorId|clientId=…&submittedFrom=…&submittedTo=…`), the linked list's `totalItems` must equal the cell's count (FR-092, SC-006).
 
 ### Implementation for User Story 8
 
-- [ ] T144 [US8] Create `backend/src/main/java/com/ensar/clmp/report/service/ReportService.java` with `submissionsByRecruiter(from, to)`, `placementsByRecruiter(from, to)`, `consultantPipeline()`, `benchReady()`, and `vendorClientActivity(from, to)`.
+- [X] T144 [US8] Create `backend/src/main/java/com/ensar/clmp/report/service/ReportService.java` with `submissionsByRecruiter(from, to)`, `placementsByRecruiter(from, to)`, `consultantPipeline()`, `benchReady()`, and `vendorClientActivity(from, to)`.
   - All of them use grouped queries over the same filter definitions as the lists (research R13).
   - Vendor/Client `interviewsScheduled` = submissions with `submitted_date` in range AND current status INTERVIEW_SCHEDULED (research R19-6), not history events.
   - Every cell carries a `link` query string into the matching list, and responses set `empty` when there are no rows.
-- [ ] T145 [US8] Create the report DTOs in `backend/src/main/java/com/ensar/clmp/report/web/` (`SubmissionsByRecruiterReport.java`, `PlacementsByRecruiterReport.java`, `ConsultantPipelineReport.java`, `BenchReadyReport.java`, `VendorClientActivityReport.java`, `DateRangeParams.java` with the current-month defaults from `OrgTime` and `from ≤ to` validation) and `report/web/ReportController.java` (all `GET /api/reports/*` endpoints, ADMIN and MANAGER).
-- [ ] T146 [P] [US8] Create `frontend/src/api/reports.ts`, with types appended to `types.ts`.
-- [ ] T147 [US8] Create `frontend/src/pages/reports/ReportsPage.tsx`, with a report picker (tabs), a from/to date range (default current month) for the three date-ranged reports, and a table per report with drill-down links from `link`. `EmptyState` reads "No data for this period" when `empty` is true.
-- [ ] T148 [US8] Run `./mvnw verify` and `npm test -- --run && npm run build`, and walk through quickstart V8.
+- [X] T145 [US8] Create the report DTOs in `backend/src/main/java/com/ensar/clmp/report/web/` (`SubmissionsByRecruiterReport.java`, `PlacementsByRecruiterReport.java`, `ConsultantPipelineReport.java`, `BenchReadyReport.java`, `VendorClientActivityReport.java`, `DateRangeParams.java` with the current-month defaults from `OrgTime` and `from ≤ to` validation) and `report/web/ReportController.java` (all `GET /api/reports/*` endpoints, ADMIN and MANAGER).
+- [X] T146 [P] [US8] Create `frontend/src/api/reports.ts`, with types appended to `types.ts`.
+- [X] T147 [US8] Create `frontend/src/pages/reports/ReportsPage.tsx`, with a report picker (tabs), a from/to date range (default current month) for the three date-ranged reports, and a table per report with drill-down links from `link`. `EmptyState` reads "No data for this period" when `empty` is true.
+- [X] T148 [US8] Run `./mvnw verify` and `npm test -- --run && npm run build`, and walk through quickstart V8.
 
 **Checkpoint**: All eight user stories are complete.
 
