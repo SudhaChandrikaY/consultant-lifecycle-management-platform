@@ -116,3 +116,39 @@ describe('Consultant detail — Submissions panel and on-Hold banner', () => {
     expect(screen.queryByText('Acme Staffing')).not.toBeInTheDocument();
   });
 });
+
+const PLACED_DETAIL = {
+  ...WITH_SUBMISSIONS,
+  status: 'PLACED',
+  currentMarketingAssignment: undefined,
+  submissions: [
+    { id: 31, vendorName: 'Acme Staffing', clientName: 'Globex', jobTitle: 'Java Developer', status: 'PLACED', submittedDate: '2026-10-01' },
+  ],
+  placements: [{ id: 5, clientName: 'Globex', startDate: '2026-11-01', expectedEndDate: '2027-11-01' }],
+} as ConsultantDetail;
+
+describe('Consultant detail — Placements panel', () => {
+  beforeEach(() => vi.resetAllMocks());
+
+  it.each(['ADMIN', 'MANAGER', 'RECRUITER'] as Role[])('shows client, start date, and a link for %s', async (role) => {
+    renderDetail(role, PLACED_DETAIL);
+    const panel = await screen.findByRole('region', { name: /placements/i });
+    expect(within(panel).getByText('Globex')).toBeInTheDocument();
+    expect(within(panel).getByText(/nov 1, 2026/i)).toBeInTheDocument();
+    expect(within(panel).getByRole('link', { name: /view placement/i })).toHaveAttribute('href', '/placements/5');
+  });
+
+  it('shows HR only the status badge and history: no commercial panels or text', async () => {
+    renderDetail('HR_OPERATIONS', PLACED_DETAIL);
+    expect(await screen.findByRole('heading', { name: /arun kumar/i })).toBeInTheDocument();
+    expect(screen.getAllByText('Placed').length).toBeGreaterThan(0);
+    expect(screen.getByRole('heading', { name: /history/i })).toBeInTheDocument();
+    for (const name of [/marketing/i, /submissions/i, /placements/i]) {
+      expect(screen.queryByRole('region', { name })).not.toBeInTheDocument();
+    }
+    const text = document.body.textContent ?? '';
+    for (const forbidden of ['Acme', 'Globex', 'Bill rate', 'Contract term', 'Vendor', 'Client']) {
+      expect(text).not.toContain(forbidden);
+    }
+  });
+});

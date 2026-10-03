@@ -24,6 +24,7 @@ import com.ensar.clmp.history.domain.HistoryEntityType;
 import com.ensar.clmp.history.service.HistoryService;
 import com.ensar.clmp.lifecycle.ConsultantLifecycleService;
 import com.ensar.clmp.marketing.service.MarketingService;
+import com.ensar.clmp.placement.service.PlacementService;
 import com.ensar.clmp.submission.domain.SubmissionStatus;
 import com.ensar.clmp.submission.service.SubmissionService;
 import com.ensar.clmp.submission.web.SubmissionSummary;
@@ -41,12 +42,13 @@ public class ConsultantService {
     private final VersionGuard versionGuard;
     private final MarketingService marketing;
     private final SubmissionService submissions;
+    private final PlacementService placements;
     private final Clock clock;
 
     public ConsultantService(ConsultantRepository consultants, ConsultantAccessPolicy access,
             ConsultantLifecycleService lifecycle, ConsultantAssignmentService assignment, ReadinessChecker readiness,
             HistoryService history, VersionGuard versionGuard, MarketingService marketing, SubmissionService submissions,
-            Clock clock) {
+            PlacementService placements, Clock clock) {
         this.consultants = consultants;
         this.access = access;
         this.lifecycle = lifecycle;
@@ -56,6 +58,7 @@ public class ConsultantService {
         this.versionGuard = versionGuard;
         this.marketing = marketing;
         this.submissions = submissions;
+        this.placements = placements;
         this.clock = clock;
     }
 
@@ -151,7 +154,7 @@ public class ConsultantService {
                 c.getPrimarySkill(), c.getAdditionalSkills(), c.getYearsExperience(), c.getVisaType(), c.getStatus(),
                 c.needsReassignment(), recruiter, contact, lifecycle.allowedManualTransitions(c, viewer),
                 readiness.missingItems(c), commercial ? marketing.currentSummaryFor(c.getId()) : null, subs,
-                openOnHold, c.getVersion());
+                openOnHold, commercial ? placements.summariesFor(c.getId(), viewer) : null, c.getVersion());
     }
 
     private static BusinessException duplicateEmail() {

@@ -12,6 +12,9 @@ import LoginPage from './pages/login/LoginPage';
 import MarketingDetailPage from './pages/marketing/MarketingDetailPage';
 import MarketingFormPage from './pages/marketing/MarketingFormPage';
 import MarketingListPage from './pages/marketing/MarketingListPage';
+import PlacementDetailPage from './pages/placements/PlacementDetailPage';
+import PlacementFormPage from './pages/placements/PlacementFormPage';
+import PlacementListPage from './pages/placements/PlacementListPage';
 import RecruiterDetailPage from './pages/recruiters/RecruiterDetailPage';
 import RecruiterFormPage from './pages/recruiters/RecruiterFormPage';
 import RecruiterListPage from './pages/recruiters/RecruiterListPage';
@@ -52,9 +55,9 @@ export const APP_ROUTES: AppRoute[] = [
   { path: '/submissions', roles: ROUTE_ROLES.commercial, element: <SubmissionListPage /> },
   { path: '/submissions/new', roles: ROUTE_ROLES.submissionCreators, element: <SubmissionFormPage /> },
   { path: '/submissions/:id', roles: ROUTE_ROLES.commercial, element: <SubmissionDetailPage /> },
-  { path: '/placements', roles: ROUTE_ROLES.commercial, element: <Placeholder title="Placements" /> },
-  { path: '/placements/new', roles: ROUTE_ROLES.placementCreators, element: <Placeholder title="New placement" /> },
-  { path: '/placements/:id', roles: ROUTE_ROLES.commercial, element: <Placeholder title="Placement" /> },
+  { path: '/placements', roles: ROUTE_ROLES.commercial, element: <PlacementListPage /> },
+  { path: '/placements/new', roles: ROUTE_ROLES.placementCreators, element: <PlacementFormPage /> },
+  { path: '/placements/:id', roles: ROUTE_ROLES.commercial, element: <PlacementDetailPage /> },
   { path: '/reports', roles: ROUTE_ROLES.adminManager, element: <Placeholder title="Reports" /> },
 ];
 

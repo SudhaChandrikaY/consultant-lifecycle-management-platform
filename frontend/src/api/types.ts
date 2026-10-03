@@ -158,6 +158,7 @@ export interface ConsultantDetail {
   currentMarketingAssignment?: MarketingSummary;
   submissions?: SubmissionSummary[];
   openSubmissionsWhileOnHold?: SubmissionSummary[];
+  placements?: PlacementSummary[];
   version: number;
 }
 
@@ -313,4 +314,58 @@ export interface SubmissionCreateRequest {
   submittedDate?: string | null;
   note?: string | null;
   acknowledgeDuplicate: boolean;
+}
+
+// ---- US6: placements ----
+
+export interface PlacementSummary {
+  id: number;
+  clientName: string;
+  startDate: string;
+  expectedEndDate: string;
+}
+
+export interface PlacementListItem {
+  id: number;
+  consultant: IdFullName;
+  recruiter: IdFullName;
+  client: IdName;
+  vendor: IdName;
+  startDate: string;
+  billRate: number;
+  contractTermMonths: number;
+  expectedEndDate: string;
+}
+
+export interface PlacementDetail extends PlacementListItem {
+  submissionId: number;
+  jobTitle: string;
+  createdAt: string;
+  createdBy: string | null;
+  history: HistoryEntry[];
+  version: number;
+}
+
+export interface OtherOpenSubmission {
+  id: number;
+  vendorName: string;
+  clientName: string;
+  jobTitle: string;
+  status: SubmissionStatus;
+  version: number;
+}
+
+export interface PlacementCreated extends PlacementDetail {
+  otherOpenSubmissions: OtherOpenSubmission[];
+}
+
+export interface PlacementDraft {
+  submissionId: number;
+  consultant: IdFullName;
+  recruiter: IdFullName;
+  vendor: IdName;
+  client: IdName;
+  jobTitle: string;
+  billRate: number;
+  submittedDate: string | null;
 }

@@ -661,7 +661,7 @@ Project. The consultant detail page shows the placements panel. As hr, see only 
 
 ### Tests for User Story 6
 
-- [ ] T120 [P] [US6] Write `backend/src/test/java/com/ensar/clmp/it/US6PlacementIT.java`:
+- [X] T120 [P] [US6] Write `backend/src/test/java/com/ensar/clmp/it/US6PlacementIT.java`:
   - AS 6.1: `GET /api/placements/draft?submissionId=` is pre-filled; a non-OFFER submission returns 422 `SUBMISSION_NOT_AT_OFFER`.
   - AS 6.2: POST returns 201. The submission is PLACED, the consultant PLACED, and marketing CLOSED with reason "Placed", each with a system-triggered history row whose trigger is `PLACEMENT_CREATED` and this placement id.
   - AS 6.3: a non-OFFER submission returns 422 `SUBMISSION_NOT_AT_OFFER`.
@@ -683,11 +683,11 @@ Project. The consultant detail page shows the placements panel. As hr, see only 
   - `expectedEndDate` = start + term.
   - Atomicity: force a failure after the submission update (for example a stale consultant version) and assert nothing changed.
   - Reopening a marketing assignment closed with "Placed" returns 422.
-- [ ] T121 [P] [US6] Extend `frontend/src/test/consultantDetailPanels.test.tsx`. The Placements panel shows client, start date, and a link for ADMIN, MANAGER, and RECRUITER. For HR_OPERATIONS with a PLACED consultant, the page shows the status badge and history but renders **no** Marketing, Submissions, or Placements panel and no vendor, client, bill rate, or contract term text.
+- [X] T121 [P] [US6] Extend `frontend/src/test/consultantDetailPanels.test.tsx`. The Placements panel shows client, start date, and a link for ADMIN, MANAGER, and RECRUITER. For HR_OPERATIONS with a PLACED consultant, the page shows the status badge and history but renders **no** Marketing, Submissions, or Placements panel and no vendor, client, bill rate, or contract term text.
 
 ### Implementation for User Story 6
 
-- [ ] T122 [P] [US6] Create `backend/src/main/java/com/ensar/clmp/placement/domain/Placement.java`, `@Entity placement`:
+- [X] T122 [P] [US6] Create `backend/src/main/java/com/ensar/clmp/placement/domain/Placement.java`, `@Entity placement`:
   - `submission_id` FK required, unique
   - `consultant_id`, `recruiter_id`, `vendor_id`, `client_id` FKs, copied from the submission (`recruiter_id` is always the submission's recruiter)
   - `job_title` String(120)
@@ -699,17 +699,17 @@ Project. The consultant detail page shows the placements panel. As hr, see only 
   Add a derived `expectedEndDate()` = `startDate.plusMonths(contractTermMonths)`, and indexes on
   `recruiter_id` and `created_at`. Also create `placement/domain/PlacementRepository.java`
   (`JpaSpecificationExecutor`, `findFirstByConsultantIdOrderByCreatedAtDesc`).
-- [ ] T123 [P] [US6] Create these in `backend/src/main/java/com/ensar/clmp/placement/service/`:
+- [X] T123 [P] [US6] Create these in `backend/src/main/java/com/ensar/clmp/placement/service/`:
   - `PlacementAccessPolicy.java`:
     - View: ADMIN, MANAGER, and a RECRUITER where `placement.recruiter_id = me`.
     - Create: delegates to `SubmissionAccessPolicy.canCreatePlacementFrom`, which allows ADMIN, or the RECRUITER who is `submission.recruiter_id`.
     - Edit: ADMIN only.
     - HR is always refused.
   - `PlacementFilter.java` + `PlacementSpecifications.java`: `recruiterId, clientId, vendorId, startFrom, startTo, createdFrom, createdTo`, plus scope.
-- [ ] T124 [US6] Extend `backend/src/main/java/com/ensar/clmp/lifecycle/ConsultantLifecycleService.java`:
+- [X] T124 [US6] Extend `backend/src/main/java/com/ensar/clmp/lifecycle/ConsultantLifecycleService.java`:
   - Add `onPlacementCreated(placement, submission, actor)`: the submission goes OFFER→PLACED, the consultant goes from **READY, MARKETING, INTERVIEWING, or HOLD** to PLACED, and an open (DRAFT, ACTIVE, or HOLD) marketing assignment becomes CLOSED with reason "Placed". Each change writes a history row with `TriggerRef(PLACEMENT_CREATED, PLACEMENT, placementId)` (FR-032, FR-072).
   - Add the PLACED→ACTIVE_PROJECT guard to manual transitions: today ≥ the latest placement's `start_date`, else 422 `BUSINESS_RULE`.
-- [ ] T125 [US6] Create `backend/src/main/java/com/ensar/clmp/placement/service/PlacementService.java`:
+- [X] T125 [US6] Create `backend/src/main/java/com/ensar/clmp/placement/service/PlacementService.java`:
   - `draft(submissionId, actor)`: refused unless the caller may create from this submission and it is OFFER.
   - `create(request, actor)`, as ONE `@Transactional`:
     - Lock the consultant.
@@ -726,7 +726,7 @@ Project. The consultant detail page shows the placements panel. As hr, see only 
     - `billRate` > 0, and `contractTermMonths` 1–60.
     - One FIELD_EDIT history row per changed field.
   - `getDetail` (with history) and `list`.
-- [ ] T126 [US6] Create `backend/src/main/java/com/ensar/clmp/placement/service/PlacementTriggerLabelResolver.java` ("Placement at {client} via {vendor}"; HR gets the generic "Placement created" through `HistoryDescriptionRenderer`).
+- [X] T126 [US6] Create `backend/src/main/java/com/ensar/clmp/placement/service/PlacementTriggerLabelResolver.java` ("Placement at {client} via {vendor}"; HR gets the generic "Placement created" through `HistoryDescriptionRenderer`).
   - DTOs in `placement/web/`:
     - `PlacementCreateRequest.java`: `submissionId` `@NotNull`, `startDate` `@NotNull`, `billRate` `@NotNull @DecimalMin(value="0", inclusive=false) @Digits(integer=8, fraction=2)`, `contractTermMonths` `@NotNull @Min(1) @Max(60)`.
     - `PlacementPatchRequest.java`
@@ -739,13 +739,13 @@ Project. The consultant detail page shows the placements panel. As hr, see only 
     - `GET /draft` and `POST`: ADMIN, RECRUITER.
     - `PATCH /{id}`: ADMIN.
     - Sort allowlist: `startDate, createdAt`.
-- [ ] T127 [US6] Fill `placements` in `ConsultantDetail` for non-HR viewers, scoped by `PlacementAccessPolicy`, in `backend/src/main/java/com/ensar/clmp/consultant/service/ConsultantService.java`. Extend `DemoDataSeeder.seedPlacements()` with one placement in the current month and one older placement whose consultant is ACTIVE_PROJECT.
-- [ ] T128 [P] [US6] Create `frontend/src/api/placements.ts`, with types appended to `types.ts`.
-- [ ] T129 [US6] Create `frontend/src/pages/placements/PlacementListPage.tsx`, with recruiter, client, vendor, and start date range filters (and accepting `createdFrom`/`createdTo` from dashboard links). Columns: consultant, recruiter, client, vendor, start date, bill rate, term, and expected end date.
-- [ ] T130 [US6] Create `frontend/src/pages/placements/PlacementFormPage.tsx` (`/placements/new?submissionId=`). It loads `/draft` and shows the pre-filled read-only consultant, recruiter, vendor, client, and job title, an editable bill rate, a required start date, and a term of 1–60 with the expected end date preview. After a 201 it shows an "Other open submissions" panel with a Withdraw button per row (`POST /api/submissions/{id}/status` WITHDRAWN). Also add a "Create Placement" button to `frontend/src/pages/submissions/SubmissionDetailPage.tsx` shown only when the API returns `canCreatePlacement: true`.
-- [ ] T131 [US6] Create `frontend/src/pages/placements/PlacementDetailPage.tsx`, showing the fields, history, and for ADMIN only an edit form for start date, bill rate, and term with `version`. The start-date `fieldErrors` from the API render inline.
-- [ ] T132 [US6] Render the **Placements panel** in `frontend/src/pages/consultants/ConsultantDetailPage.tsx`, listing the visible `placements` (client, start date, expected end date, linking to `/placements/{id}`). It is not rendered for HR_OPERATIONS. HR sees only the consultant's Placed or Active Project status and history (FR-064, AS 6.7).
-- [ ] T133 [US6] Run `./mvnw verify` and `npm test -- --run && npm run build`, and walk through quickstart V6.
+- [X] T127 [US6] Fill `placements` in `ConsultantDetail` for non-HR viewers, scoped by `PlacementAccessPolicy`, in `backend/src/main/java/com/ensar/clmp/consultant/service/ConsultantService.java`. Extend `DemoDataSeeder.seedPlacements()` with one placement in the current month and one older placement whose consultant is ACTIVE_PROJECT.
+- [X] T128 [P] [US6] Create `frontend/src/api/placements.ts`, with types appended to `types.ts`.
+- [X] T129 [US6] Create `frontend/src/pages/placements/PlacementListPage.tsx`, with recruiter, client, vendor, and start date range filters (and accepting `createdFrom`/`createdTo` from dashboard links). Columns: consultant, recruiter, client, vendor, start date, bill rate, term, and expected end date.
+- [X] T130 [US6] Create `frontend/src/pages/placements/PlacementFormPage.tsx` (`/placements/new?submissionId=`). It loads `/draft` and shows the pre-filled read-only consultant, recruiter, vendor, client, and job title, an editable bill rate, a required start date, and a term of 1–60 with the expected end date preview. After a 201 it shows an "Other open submissions" panel with a Withdraw button per row (`POST /api/submissions/{id}/status` WITHDRAWN). Also add a "Create Placement" button to `frontend/src/pages/submissions/SubmissionDetailPage.tsx` shown only when the API returns `canCreatePlacement: true`.
+- [X] T131 [US6] Create `frontend/src/pages/placements/PlacementDetailPage.tsx`, showing the fields, history, and for ADMIN only an edit form for start date, bill rate, and term with `version`. The start-date `fieldErrors` from the API render inline.
+- [X] T132 [US6] Render the **Placements panel** in `frontend/src/pages/consultants/ConsultantDetailPage.tsx`, listing the visible `placements` (client, start date, expected end date, linking to `/placements/{id}`). It is not rendered for HR_OPERATIONS. HR sees only the consultant's Placed or Active Project status and history (FR-064, AS 6.7).
+- [X] T133 [US6] Run `./mvnw verify` and `npm test -- --run && npm run build`, and walk through quickstart V6.
 
 **Checkpoint**: The full consultant-to-placement lifecycle (SC-001) can be demonstrated.
 

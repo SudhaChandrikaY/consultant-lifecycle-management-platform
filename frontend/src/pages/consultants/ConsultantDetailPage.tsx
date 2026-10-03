@@ -223,6 +223,7 @@ function CommercialPanels({ consultant }: { consultant: ConsultantDetail }) {
       <OnHoldSubmissionsBanner consultant={consultant} />
       <MarketingPanel consultant={consultant} />
       <SubmissionsPanel consultant={consultant} />
+      <PlacementsPanel consultant={consultant} />
     </>
   );
 }
@@ -295,6 +296,31 @@ function SubmissionsPanel({ consultant }: { consultant: ConsultantDetail }) {
             </tbody>
           </table>
         </div>
+      )}
+    </section>
+  );
+}
+
+function PlacementsPanel({ consultant }: { consultant: ConsultantDetail }) {
+  const rows = consultant.placements ?? [];
+  if (rows.length === 0 && consultant.status !== 'PLACED' && consultant.status !== 'ACTIVE_PROJECT') return null;
+  return (
+    <section className="card" aria-labelledby="placements-heading">
+      <h2 id="placements-heading">Placements</h2>
+      {rows.length === 0 ? (
+        <p className="muted">No placements you can view.</p>
+      ) : (
+        <ul className="history">
+          {rows.map((p) => (
+            <li key={p.id}>
+              <div>{p.clientName}</div>
+              <div className="history__meta">
+                Starts {formatDate(p.startDate)} · expected end {formatDate(p.expectedEndDate)} ·{' '}
+                <Link to={`/placements/${p.id}`}>View placement</Link>
+              </div>
+            </li>
+          ))}
+        </ul>
       )}
     </section>
   );

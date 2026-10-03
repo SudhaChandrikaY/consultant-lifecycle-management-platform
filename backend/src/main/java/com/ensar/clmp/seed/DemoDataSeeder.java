@@ -5,6 +5,8 @@ import java.time.Instant;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import jakarta.persistence.EntityManager;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
@@ -31,6 +33,8 @@ import com.ensar.clmp.marketing.domain.MarketingAssignmentRepository;
 import com.ensar.clmp.marketing.domain.MarketingStatus;
 import com.ensar.clmp.marketing.service.MarketingService;
 import com.ensar.clmp.marketing.web.MarketingCreateRequest;
+import com.ensar.clmp.placement.service.PlacementService;
+import com.ensar.clmp.placement.web.PlacementCreateRequest;
 import com.ensar.clmp.submission.domain.SubmissionRepository;
 import com.ensar.clmp.submission.domain.SubmissionStatus;
 import com.ensar.clmp.submission.service.SubmissionService;
@@ -72,13 +76,16 @@ public class DemoDataSeeder implements ApplicationRunner {
     private final MarketingAssignmentRepository marketing;
     private final SubmissionService submissionService;
     private final SubmissionRepository submissions;
+    private final PlacementService placementService;
+    private final EntityManager entityManager;
 
     public DemoDataSeeder(Environment environment, PasswordEncoder passwordEncoder, Clock clock,
             TeamRepository teams, RegionRepository regions, AppUserRepository users,
             RecruiterRepository recruiters, ConsultantRepository consultants, ConsultantService consultantService,
             ConsultantLifecycleService lifecycle, ConsultantAssignmentService assignment,
             MarketingService marketingService, MarketingAssignmentRepository marketing,
-            SubmissionService submissionService, SubmissionRepository submissions) {
+            SubmissionService submissionService, SubmissionRepository submissions,
+            PlacementService placementService, EntityManager entityManager) {
         this.environment = environment;
         this.passwordEncoder = passwordEncoder;
         this.clock = clock;
@@ -94,6 +101,8 @@ public class DemoDataSeeder implements ApplicationRunner {
         this.marketing = marketing;
         this.submissionService = submissionService;
         this.submissions = submissions;
+        this.placementService = placementService;
+        this.entityManager = entityManager;
     }
 
     @Override
@@ -111,6 +120,7 @@ public class DemoDataSeeder implements ApplicationRunner {
         seedConsultants();
         seedMarketing();
         seedSubmissions();
+        seedPlacements();
         log.info("Demo data seeded.");
     }
 
@@ -261,6 +271,36 @@ public class DemoDataSeeder implements ApplicationRunner {
         Long withdrawn = submit(li, "recruiter2", "Nimbus Talent", "Initech", "Python Developer", "76.00",
                 today.minusDays(6), null);
         advance(withdrawn, "recruiter2", SubmissionStatus.WITHDRAWN);
+    }
+
+    /**
+     * One placement this month (Vikram Rao's Offer; closes his overdue marketing as "Placed") and an
+     * older placement whose consultant (Fatima Noor) is now on an Active Project.
+     */
+    private void seedPlacements() {
+        LocalDate today = LocalDate.now(clock);
+        Long vikramOffer = submissions.findAll().stream()
+                .filter(s -> s.getJobTitle().equals("Java Developer") && s.getStatus() == SubmissionStatus.OFFER)
+                .findFirst().orElseThrow().getId();
+        placementService.create(new PlacementCreateRequest(vikramOffer, today.plusDays(14), new BigDecimal("95.00"), 12),
+                actor("recruiter1"));
+
+        Long fatima = consultantId("Fatima");
+        setStatus(fatima, ConsultantStatus.READY, null);
+        Long older = submit(fatima, "recruiter2", "TechBridge Partners", "Umbrella Health", "Data Engineer", "90.00",
+                today.minusDays(80), null);
+        advance(older, "recruiter2", SubmissionStatus.INTERVIEW_SCHEDULED, SubmissionStatus.INTERVIEW_CLEARED,
+                SubmissionStatus.OFFER);
+        Long placementId = placementService.create(new PlacementCreateRequest(older, today.minusDays(45),
+                new BigDecimal("90.00"), 6), actor("recruiter2")).placement().id();
+        // Demo data only: date this placement two months back so "placements this month" has history.
+        entityManager.flush();
+        entityManager.createNativeQuery("update placement set created_at = ? where id = ?")
+                .setParameter(1, clock.instant().minus(java.time.Duration.ofDays(60)))
+                .setParameter(2, placementId)
+                .executeUpdate();
+        entityManager.clear();
+        setStatus(fatima, ConsultantStatus.ACTIVE_PROJECT, null);
     }
 
     private Long submit(Long consultantId, String username, String vendor, String client, String jobTitle,

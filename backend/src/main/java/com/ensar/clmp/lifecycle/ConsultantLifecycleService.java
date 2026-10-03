@@ -35,6 +35,8 @@ import com.ensar.clmp.history.service.TriggerRef;
 import com.ensar.clmp.marketing.domain.MarketingAssignment;
 import com.ensar.clmp.marketing.domain.MarketingAssignmentRepository;
 import com.ensar.clmp.marketing.domain.MarketingStatus;
+import com.ensar.clmp.placement.domain.Placement;
+import com.ensar.clmp.placement.domain.PlacementRepository;
 import com.ensar.clmp.submission.domain.Submission;
 import com.ensar.clmp.submission.domain.SubmissionRepository;
 import com.ensar.clmp.submission.domain.SubmissionStatus;
@@ -66,17 +68,19 @@ public class ConsultantLifecycleService {
     private final ConsultantRepository consultants;
     private final MarketingAssignmentRepository marketing;
     private final SubmissionRepository submissions;
+    private final PlacementRepository placements;
     private final HistoryService history;
     private final ReadinessChecker readiness;
     private final VersionGuard versionGuard;
     private final Clock clock;
 
     public ConsultantLifecycleService(ConsultantRepository consultants, MarketingAssignmentRepository marketing,
-            SubmissionRepository submissions, HistoryService history, ReadinessChecker readiness,
-            VersionGuard versionGuard, Clock clock) {
+            SubmissionRepository submissions, PlacementRepository placements, HistoryService history,
+            ReadinessChecker readiness, VersionGuard versionGuard, Clock clock) {
         this.consultants = consultants;
         this.marketing = marketing;
         this.submissions = submissions;
+        this.placements = placements;
         this.history = history;
         this.readiness = readiness;
         this.versionGuard = versionGuard;
@@ -183,6 +187,31 @@ public class ConsultantLifecycleService {
         }
     }
 
+    private static final java.util.Set<ConsultantStatus> PLACEABLE = java.util.Set.of(READY, MARKETING, INTERVIEWING,
+            HOLD);
+
+    /**
+     * FR-072, one transaction: the submission goes Offer → Placed, the consultant (Ready, Marketing,
+     * Interviewing, or Hold) goes to Placed, and an open marketing assignment closes with "Placed".
+     * Every change is recorded as triggered by this placement.
+     */
+    public void onPlacementCreated(Placement placement, Submission submission, CurrentUser actor) {
+        TriggerRef trigger = new TriggerRef(TriggerEvent.PLACEMENT_CREATED, HistoryEntityType.PLACEMENT,
+                placement.getId());
+        SubmissionStatus oldSubmissionStatus = submission.getStatus();
+        submission.changeStatus(SubmissionStatus.PLACED);
+        history.recordSystemStatusChange(HistoryEntityType.SUBMISSION, submission.getId(),
+                submission.getConsultant().getId(), submission.getRecruiter().getId(), oldSubmissionStatus.name(),
+                SubmissionStatus.PLACED.name(), null, actor, trigger);
+
+        Consultant consultant = submission.getConsultant();
+        if (PLACEABLE.contains(consultant.getStatus())) {
+            applyAutomatic(consultant, PLACED, actor, trigger);
+        }
+        marketing.findOpenFor(consultant.getId()).ifPresent(a -> applyToMarketing(a, MarketingStatus.CLOSED,
+                MarketingAssignment.PLACED_REASON, actor, trigger));
+    }
+
     private void applyAutomatic(Consultant consultant, ConsultantStatus target, CurrentUser actor,
             TriggerRef trigger) {
         ConsultantStatus from = consultant.getStatus();
@@ -219,9 +248,16 @@ public class ConsultantLifecycleService {
         }
     }
 
-    /** PLACED -> ACTIVE_PROJECT only on or after the placement start date. Filled in by US6. */
+    /** PLACED -> ACTIVE_PROJECT only on or after the latest placement's start date (AS 6.5). */
     private void guardActiveProject(Consultant consultant) {
-        // No placements exist before US6.
+        Placement latest = placements.findFirstByConsultant_IdOrderByCreatedAtDescIdDesc(consultant.getId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.BUSINESS_RULE,
+                        "The consultant has no placement to start."));
+        java.time.LocalDate today = java.time.LocalDate.now(clock);
+        if (today.isBefore(latest.getStartDate())) {
+            throw new BusinessException(ErrorCode.BUSINESS_RULE,
+                    "Active Project can be set on or after the placement start date (" + latest.getStartDate() + ").");
+        }
     }
 
     /** Consultant on Hold puts an Active marketing assignment on Hold (FR-032). */

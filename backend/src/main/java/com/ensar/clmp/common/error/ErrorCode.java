@@ -22,7 +22,9 @@ public enum ErrorCode {
     OPEN_ASSIGNMENT_EXISTS(HttpStatus.CONFLICT, "Open assignment exists"),
     BUSINESS_RULE(HttpStatus.UNPROCESSABLE_CONTENT, "Business rule"),
     DUPLICATE_SUBMISSION(HttpStatus.CONFLICT, "Possible duplicate submission"),
-    OPEN_SUBMISSIONS_EXIST(HttpStatus.UNPROCESSABLE_CONTENT, "Open submissions exist");
+    OPEN_SUBMISSIONS_EXIST(HttpStatus.UNPROCESSABLE_CONTENT, "Open submissions exist"),
+    SUBMISSION_NOT_AT_OFFER(HttpStatus.UNPROCESSABLE_CONTENT, "Submission not at Offer"),
+    ALREADY_PLACED(HttpStatus.UNPROCESSABLE_CONTENT, "Already placed");
 
     private final HttpStatus status;
     private final String title;
