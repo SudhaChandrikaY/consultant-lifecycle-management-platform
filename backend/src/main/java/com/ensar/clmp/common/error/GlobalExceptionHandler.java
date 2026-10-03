@@ -78,8 +78,10 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     ResponseEntity<ProblemDetail> handleUnexpected(Exception ex) {
-        // Log the exception type and stack only; never request bodies or parameter values.
-        log.error("Unhandled exception", ex);
+        // Exception messages can carry data values (e.g., a constraint violation quoting an email),
+        // so ERROR logs only the types; the full detail is available at DEBUG (constitution VII).
+        log.error("Unhandled {} (root cause {})", ex.getClass().getName(), rootCause(ex).getClass().getName());
+        log.debug("Unhandled exception detail", ex);
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(
                 org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred.");
         problem.setTitle("Internal error");
@@ -143,6 +145,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @SuppressWarnings({ "unchecked", "rawtypes" })
     private static ResponseEntity<Object> asObject(ResponseEntity<ProblemDetail> response) {
         return (ResponseEntity) response;
+    }
+
+    private static Throwable rootCause(Throwable ex) {
+        Throwable root = ex;
+        while (root.getCause() != null && root.getCause() != root) {
+            root = root.getCause();
+        }
+        return root;
     }
 
     private static String lastNode(String path) {

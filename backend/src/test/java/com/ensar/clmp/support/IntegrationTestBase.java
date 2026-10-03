@@ -31,7 +31,7 @@ import tools.jackson.databind.ObjectMapper;
  * database per test class so state never leaks between classes. The clock is fixed at
  * {@link FixedClockConfig#NOW}.
  */
-@SpringBootTest(properties = "spring.datasource.url=jdbc:h2:mem:it-${random.uuid}")
+@SpringBootTest(properties = "spring.datasource.url=jdbc:h2:mem:it-${random.uuid};LOCK_TIMEOUT=10000")
 @AutoConfigureMockMvc
 @ActiveProfiles("dev")
 @Import(FixedClockConfig.class)

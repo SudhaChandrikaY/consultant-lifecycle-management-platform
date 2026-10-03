@@ -19,6 +19,8 @@
 
     <properties>
         <java.version>21</java.version>
+        <!-- Performance smoke tests (SC-007) are opt-in: ./mvnw verify -Dgroups=perf -->
+        <surefire.excludedGroups>perf</surefire.excludedGroups>
     </properties>
 
     <dependencies>
@@ -68,6 +70,21 @@
         </dependency>
     </dependencies>
 
+    <profiles>
+        <!-- Selecting a group with -Dgroups lifts the default perf exclusion. -->
+        <profile>
+            <id>test-groups</id>
+            <activation>
+                <property>
+                    <name>groups</name>
+                </property>
+            </activation>
+            <properties>
+                <surefire.excludedGroups></surefire.excludedGroups>
+            </properties>
+        </profile>
+    </profiles>
+
     <build>
         <plugins>
             <plugin>
@@ -84,6 +101,7 @@
                         <include>**/*Tests.java</include>
                         <include>**/*IT.java</include>
                     </includes>
+                    <excludedGroups>${surefire.excludedGroups}</excludedGroups>
                 </configuration>
             </plugin>
         </plugins>

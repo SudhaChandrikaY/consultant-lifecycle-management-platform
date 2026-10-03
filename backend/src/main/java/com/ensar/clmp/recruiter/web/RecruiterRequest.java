@@ -13,4 +13,10 @@ public record RecruiterRequest(
         @NotNull(message = "Region is required.") Long regionId,
         Long linkedUserId,
         Long version) {
+
+    /** Never print contact values. */
+    @Override
+    public String toString() {
+        return "RecruiterRequest[teamId=" + teamId + ", regionId=" + regionId + ", version=" + version + "]";
+    }
 }

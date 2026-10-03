@@ -131,8 +131,9 @@ public class MarketingService {
     @Transactional
     public MarketingDetail transition(Long id, MarketingStatus target, String reason, Long version,
             CurrentUser actor) {
+        Long consultantId = assignments.findConsultantIdById(id).orElseThrow();
+        Consultant consultant = consultants.findByIdForUpdate(consultantId).orElseThrow();
         MarketingAssignment assignment = assignments.findById(id).orElseThrow();
-        Consultant consultant = consultants.findByIdForUpdate(assignment.getConsultant().getId()).orElseThrow();
         versionGuard.check(assignment, version);
         MarketingStatus from = assignment.getStatus();
         transitions.validate(from, target, assignment.getCloseReason(), reason, actor.role(),

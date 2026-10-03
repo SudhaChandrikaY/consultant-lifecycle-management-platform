@@ -11,7 +11,7 @@ spring:
   application:
     name: clmp
   datasource:
-    url: jdbc:h2:mem:clmp;DB_CLOSE_DELAY=-1
+    url: jdbc:h2:mem:clmp;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000
     username: sa
     password: ""
   jpa:

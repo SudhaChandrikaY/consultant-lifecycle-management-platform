@@ -146,8 +146,8 @@ public class SubmissionService {
     @Transactional
     public SubmissionDetail changeStatus(Long id, SubmissionStatus target, String note, LocalDate submittedDate,
             Long version, CurrentUser actor) {
+        consultants.findByIdForUpdate(submissions.findConsultantIdById(id).orElseThrow()).orElseThrow();
         Submission submission = submissions.findDetailedById(id).orElseThrow();
-        consultants.findByIdForUpdate(submission.getConsultant().getId()).orElseThrow();
         access.assertCanUpdate(submission, actor);
         versionGuard.check(submission, version);
         SubmissionStatus from = submission.getStatus();

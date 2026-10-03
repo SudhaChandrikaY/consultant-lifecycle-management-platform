@@ -25,6 +25,10 @@ public interface SubmissionRepository extends JpaRepository<Submission, Long>, J
     @Query("select s from Submission s where s.id = :id")
     Optional<Submission> findDetailedById(@Param("id") Long id);
 
+    /** Lets callers lock the consultant row before loading the submission graph (research R10). */
+    @Query("select s.consultant.id from Submission s where s.id = :id")
+    Optional<Long> findConsultantIdById(@Param("id") Long id);
+
     /** FR-055: same consultant, vendor, client, and normalized job title, in any status. */
     @EntityGraph(attributePaths = "recruiter")
     @Query("select s from Submission s where s.consultant.id = :consultantId and s.vendor.id = :vendorId "

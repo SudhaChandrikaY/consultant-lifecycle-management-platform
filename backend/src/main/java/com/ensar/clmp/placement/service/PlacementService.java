@@ -86,9 +86,12 @@ public class PlacementService {
     /** One transaction: placement, submission → Placed, consultant → Placed, marketing closed (FR-072). */
     @Transactional
     public PlacementCreated create(PlacementCreateRequest request, CurrentUser actor) {
-        Submission submission = submissions.findDetailedById(request.submissionId())
+        // Lock the consultant before loading anything that references it, so a concurrent request
+        // waits and then sees the committed status (ALREADY_PLACED), not a stale copy.
+        Long consultantId = submissions.findConsultantIdById(request.submissionId())
                 .orElseThrow(() -> BusinessException.fieldError("submissionId", "The submission does not exist."));
-        Consultant consultant = consultants.findByIdForUpdate(submission.getConsultant().getId()).orElseThrow();
+        Consultant consultant = consultants.findByIdForUpdate(consultantId).orElseThrow();
+        Submission submission = submissions.findDetailedById(request.submissionId()).orElseThrow();
         access.assertCanCreateFrom(submission, actor);
         requireOffer(submission);
         if (consultant.getStatus() == ConsultantStatus.PLACED || consultant.getStatus() == ConsultantStatus.ACTIVE_PROJECT) {

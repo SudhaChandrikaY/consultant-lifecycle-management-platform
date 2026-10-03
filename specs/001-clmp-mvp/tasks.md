@@ -841,24 +841,24 @@ underlying lists (quickstart V8).
 
 **Purpose**: Success-criteria verification and hardening across stories (plan slice S9).
 
-- [ ] T149 [P] Write `backend/src/test/java/com/ensar/clmp/security/AuthorizationMatrixTest.java`, a JUnit `@ParameterizedTest` over every row of `contracts/authorization-matrix.md § Endpoint × Role` × {admin, manager, recruiter1, hr} (plus recruiter3 for empty scope).
+- [X] T149 [P] Write `backend/src/test/java/com/ensar/clmp/security/AuthorizationMatrixTest.java`, a JUnit `@ParameterizedTest` over every row of `contracts/authorization-matrix.md § Endpoint × Role` × {admin, manager, recruiter1, hr} (plus recruiter3 for empty scope).
   - Allowed cells don't return 403. Refused cells return 403 `NOT_AUTHORIZED` with no state change, checked through row counts before and after.
   - "Own" cells are covered with an owned and a non-owned record.
   - "Own submission for placement" is covered with a submission where the caller is only the consultant's current recruiter.
   - Assert that `PUT /api/submissions/{id}` is not exposed (SC-002, FR-004).
-- [ ] T150 [P] Write `backend/src/test/java/com/ensar/clmp/security/SensitiveFieldExposureTest.java`. It walks every GET endpoint's JSON for each role and asserts:
+- [X] T150 [P] Write `backend/src/test/java/com/ensar/clmp/security/SensitiveFieldExposureTest.java`. It walks every GET endpoint's JSON for each role and asserts:
   - No `password`/`passwordHash` anywhere.
   - Consultant list items never have `email`, `phone`, `visaExpirationDate`, or `notes`.
   - hr responses contain no `vendor`, `client`, `billRate`, or `contractTermMonths` keys, and no history `description` mentions a seeded vendor or client name.
   - History `oldValue`/`newValue` never contain a consultant email or phone (FR-007, FR-024, FR-064, FR-103).
-- [ ] T151 [P] Write `backend/src/test/java/com/ensar/clmp/it/ConcurrencyIT.java`:
+- [X] T151 [P] Write `backend/src/test/java/com/ensar/clmp/it/ConcurrencyIT.java`:
   - A stale `version` on consultant, recruiter, marketing, submission status, and placement updates returns 409 `CONCURRENT_MODIFICATION`.
   - Two concurrent `POST /api/marketing-assignments` for the same consultant (two threads, `CountDownLatch`) produce exactly one 201 and one 409 `OPEN_ASSIGNMENT_EXISTS`.
   - Two concurrent placements for the same consultant produce exactly one 201 (research R10).
-- [ ] T152 Create `backend/src/main/java/com/ensar/clmp/seed/PerfDataSeeder.java` (`@Profile("perf")`, runs after `DemoDataSeeder`), seeding 50 recruiters, 500 consultants, and 2,000 submissions across statuses with realistic dates. Also create `backend/src/test/java/com/ensar/clmp/perf/PerformanceSmokeIT.java`, tagged `@Tag("perf")` and excluded from default `verify` through surefire `excludedGroups`. It asserts that the consultant, submission, and placement list endpoints, `/api/dashboard`, and each report respond in < 2 s as admin (SC-007). Add the surefire configuration to `backend/pom.xml`.
-- [ ] T153 Review logging across `backend/src/main/java/com/ensar/clmp/**` and `backend/src/main/resources/application*.yml`. Confirm that no log statement prints request bodies, passwords, consultant contact fields, or bill rates (ids only), and that Hibernate SQL parameter logging is off. Fix any finding (constitution VII).
-- [ ] T154 [P] Create the root `README.md`: the project purpose, a pointer to `specs/001-clmp-mvp/quickstart.md` for build and run, the demo users, and a note that demo passwords are dev-only.
-- [ ] T155 Run the full quality gate: `./mvnw verify` in `backend/` and `npm run typecheck && npm test -- --run && npm run build` in `frontend/`. Optionally run `./mvnw verify -Dgroups=perf` with the perf profile. Then execute quickstart V1–V10 and record the results, including the SC-001 timing and any deviations, in the change description (constitution Quality Gates, VIII).
+- [X] T152 Create `backend/src/main/java/com/ensar/clmp/seed/PerfDataSeeder.java` (`@Profile("perf")`, runs after `DemoDataSeeder`), seeding 50 recruiters, 500 consultants, and 2,000 submissions across statuses with realistic dates. Also create `backend/src/test/java/com/ensar/clmp/perf/PerformanceSmokeIT.java`, tagged `@Tag("perf")` and excluded from default `verify` through surefire `excludedGroups`. It asserts that the consultant, submission, and placement list endpoints, `/api/dashboard`, and each report respond in < 2 s as admin (SC-007). Add the surefire configuration to `backend/pom.xml`.
+- [X] T153 Review logging across `backend/src/main/java/com/ensar/clmp/**` and `backend/src/main/resources/application*.yml`. Confirm that no log statement prints request bodies, passwords, consultant contact fields, or bill rates (ids only), and that Hibernate SQL parameter logging is off. Fix any finding (constitution VII).
+- [X] T154 [P] Create the root `README.md`: the project purpose, a pointer to `specs/001-clmp-mvp/quickstart.md` for build and run, the demo users, and a note that demo passwords are dev-only.
+- [X] T155 Run the full quality gate: `./mvnw verify` in `backend/` and `npm run typecheck && npm test -- --run && npm run build` in `frontend/`. Optionally run `./mvnw verify -Dgroups=perf` with the perf profile. Then execute quickstart V1–V10 and record the results, including the SC-001 timing and any deviations, in the change description (constitution Quality Gates, VIII).
 
 ---
 
