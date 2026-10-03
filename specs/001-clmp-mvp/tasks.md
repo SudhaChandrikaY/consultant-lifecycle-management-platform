@@ -763,33 +763,33 @@ the total of the list it links to (quickstart V7).
 
 ### Tests for User Story 7
 
-- [ ] T134 [P] [US7] Write `backend/src/test/java/com/ensar/clmp/it/US7DashboardIT.java`:
+- [X] T134 [P] [US7] Write `backend/src/test/java/com/ensar/clmp/it/US7DashboardIT.java`:
   - AS 7.1: admin and manager get `scope=ORGANIZATION`, with all six counts including NEEDS_REASSIGNMENT, `recruiterPerformance`, and ≤ 20 `recentActivity`. Manager figures equal admin figures (organization-wide, FR-016).
   - AS 7.2: recruiter1 gets `scope=OWN`, with no `recruiterPerformance`, and activity limited to their consultants and submissions.
   - AS 7.3: hr gets `consultantsByStatus` and consultant-only activity, and the body contains no `billRate`, `vendor`, `client`, or `recruiterPerformance` keys.
   - recruiter3 (unlinked) gets all zeros and the contact-admin `message`.
-- [ ] T135 [P] [US7] Write `backend/src/test/java/com/ensar/clmp/consistency/DashboardListConsistencyIT.java`. For each of admin, manager, recruiter1, and hr, and for every count, it calls the list endpoint named in `link.list` with `link.query` and asserts `totalItems == value` (AS 7.4, SC-006, FR-083).
+- [X] T135 [P] [US7] Write `backend/src/test/java/com/ensar/clmp/consistency/DashboardListConsistencyIT.java`. For each of admin, manager, recruiter1, and hr, and for every count, it calls the list endpoint named in `link.list` with `link.query` and asserts `totalItems == value` (AS 7.4, SC-006, FR-083).
 
 ### Implementation for User Story 7
 
-- [ ] T136 [US7] Add `recentActivity(viewer, limit=20)` to `backend/src/main/java/com/ensar/clmp/history/service/HistoryQueryService.java`, rendered through `HistoryDescriptionRenderer`. Activity scope (FR-102):
+- [X] T136 [US7] Add `recentActivity(viewer, limit=20)` to `backend/src/main/java/com/ensar/clmp/history/service/HistoryQueryService.java`, rendered through `HistoryDescriptionRenderer`. Activity scope (FR-102):
   - ADMIN and MANAGER see all rows.
   - RECRUITER sees rows where `consultant_id` ∈ consultants currently assigned to me OR `owner_recruiter_id` = me.
   - HR_OPERATIONS sees `entity_type = CONSULTANT` only.
   - A RECRUITER with no `recruiterId` gets an empty result.
-- [ ] T137 [US7] Create `backend/src/main/java/com/ensar/clmp/dashboard/service/DashboardService.java`. It computes every count by calling the same filters and specifications plus the caller scope used by the lists (`ConsultantSpecifications`, `SubmissionSpecifications`, `PlacementSpecifications`) with `count` queries (research R13). Placements this month use `createdFrom`/`createdTo` = `OrgTime` current month.
+- [X] T137 [US7] Create `backend/src/main/java/com/ensar/clmp/dashboard/service/DashboardService.java`. It computes every count by calling the same filters and specifications plus the caller scope used by the lists (`ConsultantSpecifications`, `SubmissionSpecifications`, `PlacementSpecifications`) with `count` queries (research R13). Placements this month use `createdFrom`/`createdTo` = `OrgTime` current month.
   - `recruiterPerformance`: per ACTIVE recruiter, assigned consultants, active submissions, interviews (INTERVIEW_STAGE), and placements this month, using grouped count queries only (research R14).
   - Role shapes follow `contracts/rest-api.md § Dashboard`, including the unlinked-recruiter `message`.
-- [ ] T138 [US7] Create `backend/src/main/java/com/ensar/clmp/dashboard/web/DashboardResponse.java`, `CountTile.java` (`key, label, value, link{list, query}`), `RecruiterPerformanceRow.java`, `StatusCount.java`, and `dashboard/web/DashboardController.java` (`GET /api/dashboard`, all roles).
-- [ ] T139 [P] [US7] Create `frontend/src/api/dashboard.ts`, with types appended to `types.ts`.
-- [ ] T140 [US7] Replace `frontend/src/pages/dashboard/DashboardPage.tsx` with role-shaped panels:
+- [X] T138 [US7] Create `backend/src/main/java/com/ensar/clmp/dashboard/web/DashboardResponse.java`, `CountTile.java` (`key, label, value, link{list, query}`), `RecruiterPerformanceRow.java`, `StatusCount.java`, and `dashboard/web/DashboardController.java` (`GET /api/dashboard`, all roles).
+- [X] T139 [P] [US7] Create `frontend/src/api/dashboard.ts`, with types appended to `types.ts`.
+- [X] T140 [US7] Replace `frontend/src/pages/dashboard/DashboardPage.tsx` with role-shaped panels:
   - `CountTile` components (in `frontend/src/pages/dashboard/CountTile.tsx`) linking to `/{link.list}?{link.query}`
   - A `RecruiterPerformanceTable` when present
   - A `ConsultantsByStatus` panel for HR
   - An `ActivityFeed` using `HistoryList`
   - The `message` empty state for unlinked recruiters
   - Loading and error states
-- [ ] T141 [US7] Run `./mvnw verify` and `npm test -- --run && npm run build`, and walk through quickstart V7.1–V7.3.
+- [X] T141 [US7] Run `./mvnw verify` and `npm test -- --run && npm run build`, and walk through quickstart V7.1–V7.3.
 
 **Checkpoint**: The dashboard reflects the workflow per role, and its counts match the lists.
 

@@ -369,3 +369,35 @@ export interface PlacementDraft {
   billRate: number;
   submittedDate: string | null;
 }
+
+// ---- US7: dashboard ----
+
+export interface CountLink {
+  list: string;
+  query: string;
+}
+
+export interface CountTileData {
+  key: string;
+  label: string;
+  value: number;
+  link: CountLink;
+}
+
+export interface RecruiterPerformanceRow {
+  recruiterId: number;
+  recruiterName: string;
+  assignedConsultants: number;
+  activeSubmissions: number;
+  interviews: number;
+  placementsThisMonth: number;
+}
+
+export interface Dashboard {
+  scope: 'ORGANIZATION' | 'OWN' | 'CONSULTANT_PIPELINE';
+  message?: string;
+  counts: CountTileData[];
+  consultantsByStatus?: { status: ConsultantStatus; count: number; link: CountLink }[];
+  recruiterPerformance?: RecruiterPerformanceRow[];
+  recentActivity: HistoryEntry[];
+}

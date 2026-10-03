@@ -13,6 +13,8 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.ensar.clmp.common.domain.GroupCount;
+
 public interface SubmissionRepository extends JpaRepository<Submission, Long>, JpaSpecificationExecutor<Submission> {
 
     @Override
@@ -33,6 +35,11 @@ public interface SubmissionRepository extends JpaRepository<Submission, Long>, J
     @EntityGraph(attributePaths = { "client", "vendor" })
     @Query("select s from Submission s where s.id in :ids")
     List<Submission> findLabelSourcesByIdIn(@Param("ids") Collection<Long> ids);
+
+    /** Grouped per submission recruiter, for the recruiter performance summary (research R14). */
+    @Query("select s.recruiter.id as groupId, count(s) as count from Submission s where s.status in :statuses "
+            + "group by s.recruiter.id")
+    List<GroupCount> countByRecruiterWithStatusIn(@Param("statuses") Collection<SubmissionStatus> statuses);
 
     boolean existsByConsultant_IdAndStatusIn(Long consultantId, Collection<SubmissionStatus> statuses);
 
