@@ -176,12 +176,20 @@ backend/     Spring Boot modular monolith (auth, consultant, recruiter, marketin
 specs/       Spec Kit feature artifacts: spec, plan, research, data model,
              REST contracts, authorization matrix, quickstart, and tasks
 .specify/    Spec Kit infrastructure: project constitution, templates, and scripts
-.claude/     Claude Code skills (the Spec Kit workflow commands) used during development
+.claude/     Claude Code configuration: Spec Kit skills (speckit-*), CLMP agents and skills (clmp-*)
+.mcp.json    Read-only GitHub MCP connection (token from CLMP_GITHUB_PAT, never committed)
+docs/        Developer guides (agentic engineering)
 CLAUDE.md    Guidance for AI coding agents working in this repository
 ```
 
 The project constitution, [`.specify/memory/constitution.md`](.specify/memory/constitution.md), is
 the governing source of truth for architecture and engineering rules.
+
+## Agentic Engineering
+
+The repository includes a small Claude Code layer for learning and day-to-day work: three agents
+(analyst, reviewer, validator), two skills (change workflow, release readiness), and a read-only
+GitHub MCP connection. See [`docs/agentic-engineering.md`](docs/agentic-engineering.md).
 
 ## Current Scope
 
