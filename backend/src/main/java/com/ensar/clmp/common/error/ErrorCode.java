@@ -1,0 +1,31 @@
+package com.ensar.clmp.common.error;
+
+import org.springframework.http.HttpStatus;
+
+/**
+ * Stable machine-readable error codes from contracts/rest-api.md § Errors. Each code carries the
+ * HTTP status it is returned with and a short human title.
+ */
+public enum ErrorCode {
+    VALIDATION_FAILED(HttpStatus.BAD_REQUEST, "Validation failed"),
+    UNAUTHENTICATED(HttpStatus.UNAUTHORIZED, "Authentication required"),
+    INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "Invalid credentials"),
+    NOT_AUTHORIZED(HttpStatus.FORBIDDEN, "Not authorized"),
+    NOT_FOUND(HttpStatus.NOT_FOUND, "Not found");
+
+    private final HttpStatus status;
+    private final String title;
+
+    ErrorCode(HttpStatus status, String title) {
+        this.status = status;
+        this.title = title;
+    }
+
+    public HttpStatus status() {
+        return status;
+    }
+
+    public String title() {
+        return title;
+    }
+}

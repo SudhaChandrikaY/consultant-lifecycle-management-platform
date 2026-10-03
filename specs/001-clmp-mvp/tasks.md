@@ -86,8 +86,8 @@ it (constitution II).
 
 **⚠️ CRITICAL**: US1 cannot begin until this phase is complete.
 
-- [ ] T010 [P] Create `backend/src/main/java/com/ensar/clmp/common/error/ErrorCode.java`, an enum in which each code carries its HTTP status. Start with the codes US1 uses: `VALIDATION_FAILED` 400, `UNAUTHENTICATED` 401, `INVALID_CREDENTIALS` 401, `NOT_AUTHORIZED` 403, `NOT_FOUND` 404. Each later story adds its own codes from `contracts/rest-api.md § Errors`. Also create `common/error/BusinessException.java` (code, detail message, `Map<String,Object> extras`, optional `fieldErrors`).
-- [ ] T011 Create `backend/src/main/java/com/ensar/clmp/common/error/GlobalExceptionHandler.java` (`@RestControllerAdvice`). It returns `ProblemDetail` with a `code` property and `extras` merged in. It maps:
+- [X] T010 [P] Create `backend/src/main/java/com/ensar/clmp/common/error/ErrorCode.java`, an enum in which each code carries its HTTP status. Start with the codes US1 uses: `VALIDATION_FAILED` 400, `UNAUTHENTICATED` 401, `INVALID_CREDENTIALS` 401, `NOT_AUTHORIZED` 403, `NOT_FOUND` 404. Each later story adds its own codes from `contracts/rest-api.md § Errors`. Also create `common/error/BusinessException.java` (code, detail message, `Map<String,Object> extras`, optional `fieldErrors`).
+- [X] T011 Create `backend/src/main/java/com/ensar/clmp/common/error/GlobalExceptionHandler.java` (`@RestControllerAdvice`). It returns `ProblemDetail` with a `code` property and `extras` merged in. It maps:
   - `MethodArgumentNotValidException`/`ConstraintViolationException` → 400 `VALIDATION_FAILED` with `fieldErrors[{field,message}]`
   - `BusinessException` → its code and status
   - `AccessDeniedException` → 403 `NOT_AUTHORIZED`
@@ -96,9 +96,9 @@ it (constitution II).
 
   It MUST NOT include request bodies or sensitive values in responses or logs (FR-007,
   constitution VII).
-- [ ] T012 [P] Create `backend/src/main/java/com/ensar/clmp/auth/domain/Role.java` (enum `ADMIN, MANAGER, RECRUITER, HR_OPERATIONS`), `auth/domain/AppUser.java` (`@Entity app_user`: `id` Long PK; `username` String(60) required, unique case-insensitive; `password_hash` String(100) BCrypt, never serialized and no `toString` inclusion; `display_name` String(120) required; `role` enum required; `active` boolean), and `auth/domain/AppUserRepository.java` (`findByUsernameIgnoreCase`).
-- [ ] T013 [P] Create `backend/src/main/java/com/ensar/clmp/reference/domain/Team.java` and `Region.java` (`@Entity team`/`region`: `id` Long PK; `code` String(40) unique, immutable; `name` String(80); `active` boolean), plus `TeamRepository.java` and `RegionRepository.java`. These are needed now because `Recruiter` references them.
-- [ ] T014 [P] Create `backend/src/main/java/com/ensar/clmp/recruiter/domain/RecruiterStatus.java` (enum `ACTIVE, INACTIVE`), `recruiter/domain/Recruiter.java`, and `recruiter/domain/RecruiterRepository.java` (`JpaSpecificationExecutor`, `findByUserId`, `existsByEmailIgnoreCase`). `Recruiter` is `@Entity recruiter`:
+- [X] T012 [P] Create `backend/src/main/java/com/ensar/clmp/auth/domain/Role.java` (enum `ADMIN, MANAGER, RECRUITER, HR_OPERATIONS`), `auth/domain/AppUser.java` (`@Entity app_user`: `id` Long PK; `username` String(60) required, unique case-insensitive; `password_hash` String(100) BCrypt, never serialized and no `toString` inclusion; `display_name` String(120) required; `role` enum required; `active` boolean), and `auth/domain/AppUserRepository.java` (`findByUsernameIgnoreCase`).
+- [X] T013 [P] Create `backend/src/main/java/com/ensar/clmp/reference/domain/Team.java` and `Region.java` (`@Entity team`/`region`: `id` Long PK; `code` String(40) unique, immutable; `name` String(80); `active` boolean), plus `TeamRepository.java` and `RegionRepository.java`. These are needed now because `Recruiter` references them.
+- [X] T014 [P] Create `backend/src/main/java/com/ensar/clmp/recruiter/domain/RecruiterStatus.java` (enum `ACTIVE, INACTIVE`), `recruiter/domain/Recruiter.java`, and `recruiter/domain/RecruiterRepository.java` (`JpaSpecificationExecutor`, `findByUserId`, `existsByEmailIgnoreCase`). `Recruiter` is `@Entity recruiter`:
   - `id` Long PK
   - `full_name` String(120) required
   - `email` String(254) required, valid email, unique case-insensitive
@@ -108,26 +108,26 @@ it (constitution II).
   - `status` RecruiterStatus, default ACTIVE
   - `user_id` FK → app_user, nullable, unique
   - `@Version version`, `created_at`, `updated_at`
-- [ ] T015 Create `backend/src/main/java/com/ensar/clmp/auth/CurrentUser.java` (record `userId, username, displayName, role, Long recruiterId` nullable) and `auth/CurrentUserProvider.java`, which resolves `CurrentUser` from the `SecurityContext` and looks up the linked recruiter through `RecruiterRepository.findByUserId`. Also create `auth/service/ClmpUserDetailsService.java`, which loads `AppUser` by username (case-insensitive), maps the role to authority `ROLE_<role>`, and sets `isEnabled()` = `active` (FR-005).
-- [ ] T016 Create `backend/src/main/java/com/ensar/clmp/auth/config/SecurityConfig.java`:
+- [X] T015 Create `backend/src/main/java/com/ensar/clmp/auth/CurrentUser.java` (record `userId, username, displayName, role, Long recruiterId` nullable) and `auth/CurrentUserProvider.java`, which resolves `CurrentUser` from the `SecurityContext` and looks up the linked recruiter through `RecruiterRepository.findByUserId`. Also create `auth/service/ClmpUserDetailsService.java`, which loads `AppUser` by username (case-insensitive), maps the role to authority `ROLE_<role>`, and sets `isEnabled()` = `active` (FR-005).
+- [X] T016 Create `backend/src/main/java/com/ensar/clmp/auth/config/SecurityConfig.java`:
   - `SecurityFilterChain` with session-based authentication (`SessionCreationPolicy.IF_REQUIRED`), no form login, no HTTP Basic, and `@EnableMethodSecurity`.
   - `BCryptPasswordEncoder` bean and `AuthenticationManager` bean (DaoAuthenticationProvider with `ClmpUserDetailsService`).
   - CSRF with `CookieCsrfTokenRepository.withHttpOnlyFalse()` and the SPA `CsrfTokenRequestHandler` pattern.
   - An `AuthenticationEntryPoint` that returns 401 `UNAUTHENTICATED` ProblemDetail JSON (no redirect), and an `AccessDeniedHandler` that returns 403 `NOT_AUTHORIZED` ProblemDetail.
   - `permitAll` for `POST /api/auth/login` and `GET /api/auth/csrf`. Everything else under `/api/**` requires authentication.
   - `/h2-console/**` requires ADMIN, with `frameOptions.sameOrigin()`, only when the `dev` profile is active (research R5, R7).
-- [ ] T017 Create `backend/src/main/java/com/ensar/clmp/seed/DemoDataSeeder.java` (`ApplicationRunner`, `@Profile("dev")`). It refuses to run, failing startup, if the `prod` profile is active. It seeds:
+- [X] T017 Create `backend/src/main/java/com/ensar/clmp/seed/DemoDataSeeder.java` (`ApplicationRunner`, `@Profile("dev")`). It refuses to run, failing startup, if the `prod` profile is active. It seeds:
   - Teams: Java, .NET, Data & Analytics, DevOps & Cloud.
   - Regions: East, Central, West, Offshore.
   - Users, all with BCrypt password `Demo@123`: `admin` ADMIN, `manager` MANAGER, `recruiter1`/`recruiter2`/`recruiter3` RECRUITER, `hr` HR_OPERATIONS, and `inactive.user` RECRUITER with `active=false`.
   - Recruiters: "Riya Patel" (Java, East, linked to recruiter1), "Marcus Lee" (Data & Analytics, Central, linked to recruiter2), and two unlinked active recruiters (research R17). recruiter3 stays unlinked.
   - The seeder is structured as one private method per area (`seedReference`, `seedUsersAndRecruiters`), so stories can add `seedConsultants`, `seedMarketing`, `seedSubmissions`, and `seedPlacements`.
-- [ ] T018 Create the backend test harness in `backend/src/test/java/com/ensar/clmp/support/`:
+- [X] T018 Create the backend test harness in `backend/src/test/java/com/ensar/clmp/support/`:
   - `IntegrationTestBase.java`: `@SpringBootTest`, `@AutoConfigureMockMvc`, `@ActiveProfiles("dev")`. Helpers: `loginAs(username)` returns a `MockHttpSession` by POSTing to `/api/auth/login` with CSRF; `json(...)`; `expectProblem(result, status, code)`.
   - `TestDataFactory.java`: a Spring bean that creates entities directly through repositories for test setup. It grows per story.
   - Each IT class uses `@DirtiesContext` or explicit cleanup so state stays isolated.
-- [ ] T019 [P] Create `frontend/src/api/types.ts` with only the types US1 needs: `Role`, `CurrentUser`, and `ApiProblem {status, code, title, detail, fieldErrors?, ...extras}`. Each later story appends the types it consumes.
-- [ ] T020 Create `frontend/src/api/client.ts`, a typed `fetch` wrapper (`get`, `post`, `put`, `patch`).
+- [X] T019 [P] Create `frontend/src/api/types.ts` with only the types US1 needs: `Role`, `CurrentUser`, and `ApiProblem {status, code, title, detail, fieldErrors?, ...extras}`. Each later story appends the types it consumes.
+- [X] T020 Create `frontend/src/api/client.ts`, a typed `fetch` wrapper (`get`, `post`, `put`, `patch`).
   - It sends `credentials: 'same-origin'`.
   - It reads the `XSRF-TOKEN` cookie and sends `X-XSRF-TOKEN` on every non-GET request. On the first mutating call without a cookie, it calls `GET /api/auth/csrf`.
   - It parses `application/problem+json` into a thrown `ApiError` (carrying `ApiProblem`).
@@ -148,7 +148,7 @@ items. Opening a forbidden page directly is refused, and API calls into forbidde
 
 ### Tests for User Story 1
 
-- [ ] T021 [P] [US1] Write `backend/src/test/java/com/ensar/clmp/it/US1SignInIT.java`:
+- [X] T021 [P] [US1] Write `backend/src/test/java/com/ensar/clmp/it/US1SignInIT.java`:
   - AS 1.1: `GET /api/auth/me` after login returns the correct `role`, and `recruiterId` for recruiter1.
   - AS 1.2: a wrong password and an unknown username both return 401 `INVALID_CREDENTIALS` with an identical `detail`.
   - AS 1.3: as recruiter1, `GET /api/recruiters` and `GET /api/reports/consultant-pipeline` return 403 `NOT_AUTHORIZED` with no data.
@@ -156,35 +156,35 @@ items. Opening a forbidden page directly is refused, and API calls into forbidde
   - AS 1.5: after `POST /api/auth/logout`, `GET /api/auth/me` returns 401. Also assert `server.servlet.session.timeout` resolves to 30 minutes.
   - AS 1.6: `inactive.user` login returns 401 `INVALID_CREDENTIALS`.
   - No response body contains `password` or `passwordHash` (FR-007).
-- [ ] T022 [P] [US1] Write `frontend/src/test/navigation.test.tsx`. It renders `NavBar` for each role and asserts the exact nav items from `contracts/authorization-matrix.md § Frontend navigation`. It also asserts that `RequireRole` renders `NotAuthorized` (and calls no area API) for a forbidden role, for example RECRUITER on `/recruiters` and `/reports`.
-- [ ] T023 [P] [US1] Write `backend/src/test/java/com/ensar/clmp/architecture/NoEntityInControllerSignatureTest.java`, a plain JUnit test that scans classes under `com.ensar.clmp` annotated with `@RestController`. It fails if any public method's return type, generic type arguments, or parameter types is annotated `@Entity` (constitution IV, research R12). It is added here because US1 introduces the first controller.
+- [X] T022 [P] [US1] Write `frontend/src/test/navigation.test.tsx`. It renders `NavBar` for each role and asserts the exact nav items from `contracts/authorization-matrix.md § Frontend navigation`. It also asserts that `RequireRole` renders `NotAuthorized` (and calls no area API) for a forbidden role, for example RECRUITER on `/recruiters` and `/reports`.
+- [X] T023 [P] [US1] Write `backend/src/test/java/com/ensar/clmp/architecture/NoEntityInControllerSignatureTest.java`, a plain JUnit test that scans classes under `com.ensar.clmp` annotated with `@RestController`. It fails if any public method's return type, generic type arguments, or parameter types is annotated `@Entity` (constitution IV, research R12). It is added here because US1 introduces the first controller.
 
 ### Implementation for User Story 1
 
-- [ ] T024 [US1] Create `backend/src/main/java/com/ensar/clmp/auth/web/AuthController.java` and DTOs `auth/web/LoginRequest.java` (`username` and `password` `@NotBlank`) and `auth/web/CurrentUserResponse.java` (`id, username, displayName, role, recruiterId, sessionTimeoutMinutes`). Endpoints:
+- [X] T024 [US1] Create `backend/src/main/java/com/ensar/clmp/auth/web/AuthController.java` and DTOs `auth/web/LoginRequest.java` (`username` and `password` `@NotBlank`) and `auth/web/CurrentUserResponse.java` (`id, username, displayName, role, recruiterId, sessionTimeoutMinutes`). Endpoints:
   - `GET /api/auth/csrf` returns 204 and loads the token so the cookie is set.
   - `POST /api/auth/login` calls `AuthenticationManager.authenticate`. On success it saves the `SecurityContext` through `HttpSessionSecurityContextRepository`, rotates the session id, and returns 200 `CurrentUserResponse`. On any `AuthenticationException`, including a disabled user, it returns 401 `INVALID_CREDENTIALS` with the same generic message, "Invalid username or password."
   - `POST /api/auth/logout` invalidates the session, clears the context, and returns 204.
   - `GET /api/auth/me`.
   - It never logs the request body.
-- [ ] T025 [US1] Extend `backend/src/main/java/com/ensar/clmp/auth/config/SecurityConfig.java` with URL-level role rules that mirror `contracts/authorization-matrix.md` as defense in depth, so forbidden areas return 403 before their controllers exist:
+- [X] T025 [US1] Extend `backend/src/main/java/com/ensar/clmp/auth/config/SecurityConfig.java` with URL-level role rules that mirror `contracts/authorization-matrix.md` as defense in depth, so forbidden areas return 403 before their controllers exist:
   - `/api/recruiters/**` and `/api/reports/**`: ADMIN, MANAGER
   - `/api/marketing-assignments/**`, `/api/submissions/**`, `/api/placements/**`, `/api/vendors/**`, `/api/clients/**`: ADMIN, MANAGER, RECRUITER
   - `/api/consultants/**`, `/api/dashboard`, `/api/reference`, `/api/auth/**`: any authenticated user
 
   Method-level `@PreAuthorize` adds per-action restrictions in later stories.
-- [ ] T026 [P] [US1] Create `frontend/src/auth/permissions.ts`, the single map of role → nav items, role → display label, and role → action capabilities, copied from `contracts/authorization-matrix.md`. It is UX only, for example `canEditConsultant`, `canManageRecruiters`, `canCreateSubmission`, `canEditPlacement`, `canAssignRecruiter`, `canChangeConsultantStatus`, `canCreateMarketing`, `canViewReports`, `canViewPlacements`, `canSeeCommercialDetails` (false for HR_OPERATIONS).
-- [ ] T027 [P] [US1] Create `frontend/src/api/auth.ts` with `login`, `logout`, `me`, and `csrf`.
-- [ ] T028 [P] [US1] Create the shared components US1 consumes:
+- [X] T026 [P] [US1] Create `frontend/src/auth/permissions.ts`, the single map of role → nav items, role → display label, and role → action capabilities, copied from `contracts/authorization-matrix.md`. It is UX only, for example `canEditConsultant`, `canManageRecruiters`, `canCreateSubmission`, `canEditPlacement`, `canAssignRecruiter`, `canChangeConsultantStatus`, `canCreateMarketing`, `canViewReports`, `canViewPlacements`, `canSeeCommercialDetails` (false for HR_OPERATIONS).
+- [X] T027 [P] [US1] Create `frontend/src/api/auth.ts` with `login`, `logout`, `me`, and `csrf`.
+- [X] T028 [P] [US1] Create the shared components US1 consumes:
   - `frontend/src/components/LoadingState.tsx`, used by the route guard while `/me` loads.
   - `frontend/src/components/FormField.tsx`: label, input slot, and an inline error from `fieldErrors` by field name.
   - `frontend/src/components/ErrorBanner.tsx`: shows the problem detail and `missingItems` as a list. For `CONCURRENT_MODIFICATION` it shows "This record was changed by someone else. Reload to continue." with a Reload button. For 403 it shows "Not authorized".
-- [ ] T029 [US1] Create `frontend/src/auth/AuthProvider.tsx` (context with `user`, `login`, `logout`, and `loading`; loads `/api/auth/me` on start; on the `clmp:session-expired` event it clears the user and navigates to `/login?expired=1`) and `frontend/src/auth/RequireRole.tsx` (shows `LoadingState` while loading, redirects to `/login` when there is no user, and renders `NotAuthorized` when the role isn't in `roles`).
-- [ ] T030 [P] [US1] Create `frontend/src/components/NavBar.tsx` (items from `permissions.ts`, the user's display name and role label, and a Sign out button) and `frontend/src/components/PageLayout.tsx` (NavBar plus title, actions slot, and content).
-- [ ] T031 [US1] Create `frontend/src/pages/login/LoginPage.tsx`, built from `FormField` and `ErrorBanner`, with username and password fields and a generic error on 401. It shows "Your session expired. Please sign in again." when `?expired=1` is present and redirects to `/` on success.
-- [ ] T032 [P] [US1] Create `frontend/src/pages/NotAuthorized.tsx` and `frontend/src/pages/NotFound.tsx`.
-- [ ] T033 [US1] Create `frontend/src/routes.tsx` and `frontend/src/App.tsx`. Declare every route in `contracts/ui-routes.md`, wrapped in `RequireRole` with that route's roles. Areas not yet built render a minimal `PageLayout` titled with the area name, to be replaced by later stories. Also create `frontend/src/pages/dashboard/DashboardPage.tsx` as a welcome shell that US7 replaces.
-- [ ] T034 [US1] Run `./mvnw verify` and `npm run typecheck && npm test -- --run && npm run build`, and walk through quickstart V1.1–V1.6 manually.
+- [X] T029 [US1] Create `frontend/src/auth/AuthProvider.tsx` (context with `user`, `login`, `logout`, and `loading`; loads `/api/auth/me` on start; on the `clmp:session-expired` event it clears the user and navigates to `/login?expired=1`) and `frontend/src/auth/RequireRole.tsx` (shows `LoadingState` while loading, redirects to `/login` when there is no user, and renders `NotAuthorized` when the role isn't in `roles`).
+- [X] T030 [P] [US1] Create `frontend/src/components/NavBar.tsx` (items from `permissions.ts`, the user's display name and role label, and a Sign out button) and `frontend/src/components/PageLayout.tsx` (NavBar plus title, actions slot, and content).
+- [X] T031 [US1] Create `frontend/src/pages/login/LoginPage.tsx`, built from `FormField` and `ErrorBanner`, with username and password fields and a generic error on 401. It shows "Your session expired. Please sign in again." when `?expired=1` is present and redirects to `/` on success.
+- [X] T032 [P] [US1] Create `frontend/src/pages/NotAuthorized.tsx` and `frontend/src/pages/NotFound.tsx`.
+- [X] T033 [US1] Create `frontend/src/routes.tsx` and `frontend/src/App.tsx`. Declare every route in `contracts/ui-routes.md`, wrapped in `RequireRole` with that route's roles. Areas not yet built render a minimal `PageLayout` titled with the area name, to be replaced by later stories. Also create `frontend/src/pages/dashboard/DashboardPage.tsx` as a welcome shell that US7 replaces.
+- [X] T034 [US1] Run `./mvnw verify` and `npm run typecheck && npm test -- --run && npm run build`, and walk through quickstart V1.1–V1.6 manually.
 
 **Checkpoint**: Sign-in, role navigation, session expiry, and backend refusal work.
 

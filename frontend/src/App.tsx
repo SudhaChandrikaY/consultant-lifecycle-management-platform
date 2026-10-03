@@ -1,3 +1,13 @@
+import { BrowserRouter } from 'react-router';
+import AuthProvider from './auth/AuthProvider';
+import AppRoutes from './routes';
+
 export default function App() {
-  return <main>CLMP</main>;
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
+    </BrowserRouter>
+  );
 }
