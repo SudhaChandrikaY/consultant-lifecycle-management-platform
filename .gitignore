@@ -1,0 +1,20 @@
+# Backend
+backend/target/
+backend/data/
+*.class
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/coverage/
+*.log
+.env*
+
+# IDE / OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+*.swp
+*.tmp

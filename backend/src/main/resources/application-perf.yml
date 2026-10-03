@@ -1,0 +1,4 @@
+# Large seed for the SC-007 performance check (use together with the dev profile).
+clmp:
+  seed:
+    perf: true

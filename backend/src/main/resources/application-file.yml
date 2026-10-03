@@ -1,0 +1,7 @@
+# Opt-in persistence to disk so data survives restarts.
+spring:
+  datasource:
+    url: jdbc:h2:file:./data/clmp
+  jpa:
+    hibernate:
+      ddl-auto: update

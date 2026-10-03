@@ -1,0 +1,44 @@
+:root {
+  /* Color */
+  --color-bg: #f6f7f9;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f0f2f5;
+  --color-border: #d9dde3;
+  --color-text: #1d2330;
+  --color-text-muted: #5c6575;
+  --color-primary: #2557d6;
+  --color-primary-hover: #1c46b0;
+  --color-primary-contrast: #ffffff;
+  --color-danger: #c62828;
+  --color-danger-bg: #fdecec;
+  --color-warning: #8a5a00;
+  --color-warning-bg: #fff4dc;
+  --color-success: #1e7d3a;
+  --color-success-bg: #e5f5ea;
+  --color-info: #1d5fa8;
+  --color-info-bg: #e6f0fb;
+  --color-neutral-bg: #eceff3;
+  --color-nav-bg: #1d2330;
+  --color-nav-text: #e7eaf0;
+  --color-nav-active: #3a4357;
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  /* Type */
+  --font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-size-sm: 0.8125rem;
+  --font-size-md: 0.9375rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.5rem;
+  --line-height: 1.45;
+
+  /* Shape */
+  --radius: 6px;
+  --shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.1);
+}

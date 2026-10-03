@@ -45,10 +45,10 @@ US1 needs (research R19-1).
 
 **Purpose**: Scaffold both projects and get the builds green.
 
-- [ ] T001 Verify the active shell toolchain before any code: `java -version` reports 21 and `node -v` reports ≥ 20.19 (22 LTS preferred). If either is missing, stop and report it as a blocker (plan Deviations item 6). Record the versions found in `specs/001-clmp-mvp/quickstart.md` under Prerequisites only if they differ from the documented ones.
-- [ ] T002 Create the backend Maven project in `backend/pom.xml`: Spring Boot 4.0.x parent, `java.version` 21, groupId `com.ensar`, artifactId `clmp`. Dependencies: `spring-boot-starter-web`, `spring-boot-starter-data-jpa`, `spring-boot-starter-security`, `spring-boot-starter-validation`, `com.h2database:h2` (runtime), plus `spring-boot-starter-test` and `spring-security-test` (test). No other dependencies (research R2). Add the Maven Wrapper (`backend/mvnw`, `backend/mvnw.cmd`, `backend/.mvn/wrapper/maven-wrapper.properties`).
-- [ ] T003 Create `backend/src/main/java/com/ensar/clmp/ClmpApplication.java` (`@SpringBootApplication`).
-- [ ] T004 Create `backend/src/main/resources/application.yml` with:
+- [X] T001 Verify the active shell toolchain before any code: `java -version` reports 21 and `node -v` reports ≥ 20.19 (22 LTS preferred). If either is missing, stop and report it as a blocker (plan Deviations item 6). Record the versions found in `specs/001-clmp-mvp/quickstart.md` under Prerequisites only if they differ from the documented ones.
+- [X] T002 Create the backend Maven project in `backend/pom.xml`: Spring Boot 4.0.x parent, `java.version` 21, groupId `com.ensar`, artifactId `clmp`. Dependencies: `spring-boot-starter-web`, `spring-boot-starter-data-jpa`, `spring-boot-starter-security`, `spring-boot-starter-validation`, `com.h2database:h2` (runtime), plus `spring-boot-starter-test` and `spring-security-test` (test). No other dependencies (research R2). Add the Maven Wrapper (`backend/mvnw`, `backend/mvnw.cmd`, `backend/.mvn/wrapper/maven-wrapper.properties`).
+- [X] T003 Create `backend/src/main/java/com/ensar/clmp/ClmpApplication.java` (`@SpringBootApplication`).
+- [X] T004 Create `backend/src/main/resources/application.yml` with:
   - `server.port: 8080`
   - `server.servlet.session.timeout: 30m`
   - `server.servlet.session.cookie.http-only: true`, `same-site: lax`
@@ -60,7 +60,7 @@ US1 needs (research R19-1).
   Create `application-dev.yml` (seeding on, `spring.h2.console.enabled: true`),
   `application-file.yml` (`jdbc:h2:file:./data/clmp`, `ddl-auto: update`), and
   `application-perf.yml` (`clmp.seed.perf: true`) in `backend/src/main/resources/` (research R4).
-- [ ] T005 [P] Create the frontend Vite project in `frontend/`.
+- [X] T005 [P] Create the frontend Vite project in `frontend/`.
   - `frontend/package.json`:
     - Dependencies: `react@19`, `react-dom@19`, `react-router@7`.
     - devDependencies: `typescript@5`, `vite@7`, `@vitejs/plugin-react`, `vitest`,
@@ -70,10 +70,10 @@ US1 needs (research R19-1).
     - Scripts: `dev`, `build`, `typecheck` (`tsc --noEmit`), `test` (`vitest`).
   - Also create `frontend/tsconfig.json` (strict), `frontend/index.html`, and
     `frontend/src/main.tsx` (renders `<App/>`).
-- [ ] T006 [P] Create `frontend/vite.config.ts`: React plugin, dev `server.proxy` mapping `/api` → `http://localhost:8080` (research R6), and a Vitest `test` block (`environment: 'jsdom'`, `setupFiles: ['src/test/setup.ts']`). Also create `frontend/src/test/setup.ts`, which imports `@testing-library/jest-dom`.
-- [ ] T007 [P] Create `frontend/src/styles/tokens.css` (color, spacing, and type tokens) and `frontend/src/styles/global.css` (base layout, table, and form styles). Import both in `frontend/src/main.tsx`.
-- [ ] T008 [P] Create the root `.gitignore`, covering `backend/target/`, `backend/data/`, `frontend/node_modules/`, `frontend/dist/`, and IDE folders.
-- [ ] T009 Run `./mvnw verify` in `backend/` and `npm install && npm run typecheck && npm run build` in `frontend/`. Both MUST pass. Commit `frontend/package-lock.json`.
+- [X] T006 [P] Create `frontend/vite.config.ts`: React plugin, dev `server.proxy` mapping `/api` → `http://localhost:8080` (research R6), and a Vitest `test` block (`environment: 'jsdom'`, `setupFiles: ['src/test/setup.ts']`). Also create `frontend/src/test/setup.ts`, which imports `@testing-library/jest-dom`.
+- [X] T007 [P] Create `frontend/src/styles/tokens.css` (color, spacing, and type tokens) and `frontend/src/styles/global.css` (base layout, table, and form styles). Import both in `frontend/src/main.tsx`.
+- [X] T008 [P] Create the root `.gitignore`, covering `backend/target/`, `backend/data/`, `frontend/node_modules/`, `frontend/dist/`, and IDE folders.
+- [X] T009 Run `./mvnw verify` in `backend/` and `npm install && npm run typecheck && npm run build` in `frontend/`. Both MUST pass. Commit `frontend/package-lock.json`.
 
 ---
 
