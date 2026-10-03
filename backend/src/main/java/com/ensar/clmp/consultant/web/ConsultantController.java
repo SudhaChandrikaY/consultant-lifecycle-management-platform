@@ -97,6 +97,12 @@ public class ConsultantController {
                 currentUser.get());
     }
 
+    @PostMapping("/{id}/recruiter")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+    public ConsultantDetail assignRecruiter(@PathVariable Long id, @Valid @RequestBody AssignRecruiterRequest request) {
+        return consultants.assignRecruiter(id, request.recruiterId(), request.version(), currentUser.get());
+    }
+
     @GetMapping("/{id}/history")
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER','RECRUITER','HR_OPERATIONS')")
     public PageResponse<HistoryEntry> history(@PathVariable Long id, @RequestParam(required = false) Integer page,

@@ -157,3 +157,38 @@ export interface ConsultantRequest {
   notes?: string | null;
   version?: number;
 }
+
+// ---- US3: recruiters ----
+
+export interface RecruiterListItem {
+  id: number;
+  fullName: string;
+  team: IdName;
+  region: IdName;
+  status: RecruiterStatus;
+  assignedConsultantCount: number;
+}
+
+export interface LinkableUser {
+  id: number;
+  username: string;
+  displayName: string;
+}
+
+export interface RecruiterDetail extends RecruiterListItem {
+  email: string;
+  phone?: string;
+  linkedUser?: LinkableUser;
+  version: number;
+  consultantsFlaggedForReassignment?: number;
+}
+
+export interface RecruiterRequest {
+  fullName: string;
+  email: string;
+  phone?: string | null;
+  teamId: number | null;
+  regionId: number | null;
+  linkedUserId?: number | null;
+  version?: number;
+}

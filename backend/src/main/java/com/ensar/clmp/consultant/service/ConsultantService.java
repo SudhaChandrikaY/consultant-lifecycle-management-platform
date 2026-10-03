@@ -31,17 +31,19 @@ public class ConsultantService {
     private final ConsultantRepository consultants;
     private final ConsultantAccessPolicy access;
     private final ConsultantLifecycleService lifecycle;
+    private final ConsultantAssignmentService assignment;
     private final ReadinessChecker readiness;
     private final HistoryService history;
     private final VersionGuard versionGuard;
     private final Clock clock;
 
     public ConsultantService(ConsultantRepository consultants, ConsultantAccessPolicy access,
-            ConsultantLifecycleService lifecycle, ReadinessChecker readiness, HistoryService history,
-            VersionGuard versionGuard, Clock clock) {
+            ConsultantLifecycleService lifecycle, ConsultantAssignmentService assignment, ReadinessChecker readiness,
+            HistoryService history, VersionGuard versionGuard, Clock clock) {
         this.consultants = consultants;
         this.access = access;
         this.lifecycle = lifecycle;
+        this.assignment = assignment;
         this.readiness = readiness;
         this.history = history;
         this.versionGuard = versionGuard;
@@ -81,6 +83,13 @@ public class ConsultantService {
     public ConsultantDetail changeStatus(Long id, ConsultantStatus target, String reason, Long version,
             CurrentUser actor) {
         Consultant consultant = lifecycle.changeStatusManually(id, target, reason, version, actor);
+        consultants.flush();
+        return toDetail(consultant, actor);
+    }
+
+    @Transactional
+    public ConsultantDetail assignRecruiter(Long id, Long recruiterId, Long version, CurrentUser actor) {
+        Consultant consultant = assignment.assign(id, recruiterId, version, actor);
         consultants.flush();
         return toDetail(consultant, actor);
     }

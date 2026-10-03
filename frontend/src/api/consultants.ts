@@ -20,4 +20,6 @@ export const consultantsApi = {
   history: (id: number | string, page = 0, size = 50) =>
     client.get<PageResponse<HistoryEntry>>(`${BASE}/${id}/history`, { page, size }),
   skills: () => client.get<string[]>(`${BASE}/skills`),
+  assignRecruiter: (id: number | string, body: { recruiterId: number; version: number }) =>
+    client.post<ConsultantDetail>(`${BASE}/${id}/recruiter`, body),
 };

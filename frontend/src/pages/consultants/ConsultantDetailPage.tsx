@@ -11,6 +11,7 @@ import PageLayout from '../../components/PageLayout';
 import ReasonDialog from '../../components/ReasonDialog';
 import StatusBadge, { Badge } from '../../components/StatusBadge';
 import { useApi } from '../../hooks/useApi';
+import AssignRecruiterDialog from './AssignRecruiterDialog';
 import {
   CONSULTANT_ACTION_LABELS,
   CONSULTANT_STATUS_LABELS,
@@ -30,6 +31,7 @@ export default function ConsultantDetailPage() {
   const [actionError, setActionError] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
   const [reasonFor, setReasonFor] = useState<ConsultantStatus | null>(null);
+  const [assigning, setAssigning] = useState(false);
 
   const consultant = detail.data;
 
@@ -91,6 +93,11 @@ export default function ConsultantDetailPage() {
               {CONSULTANT_ACTION_LABELS[target] ?? `Set ${CONSULTANT_STATUS_LABELS[target]}`}
             </button>
           ))}
+          {can.assignRecruiter(user?.role) && (
+            <button type="button" onClick={() => setAssigning(true)}>
+              {consultant.assignedRecruiter ? 'Reassign recruiter' : 'Assign recruiter'}
+            </button>
+          )}
           {can.editConsultant(user?.role) && (
             <Link className="button" to={`/consultants/${consultant.id}/edit`}>
               Edit
@@ -163,6 +170,18 @@ export default function ConsultantDetailPage() {
         )}
       </section>
 
+      {assigning && (
+        <AssignRecruiterDialog
+          consultant={consultant}
+          onAssigned={(updated) => {
+            detail.setData(updated);
+            setAssigning(false);
+            history.reload();
+          }}
+          onCancel={() => setAssigning(false)}
+        />
+      )}
+
       {reasonFor && (
         <ReasonDialog
           title={`${CONSULTANT_ACTION_LABELS[reasonFor] ?? CONSULTANT_STATUS_LABELS[reasonFor]}: reason`}
@@ -185,7 +204,9 @@ function AssignedRecruiter({ consultant }: { consultant: ConsultantDetail }) {
   return (
     <>
       {consultant.assignedRecruiter.fullName}
-      {consultant.assignedRecruiter.status === 'INACTIVE' && <span className="muted"> (inactive)</span>}
+      {consultant.assignedRecruiter.status === 'INACTIVE' && (
+        <span className="muted"> (inactive — needs reassignment)</span>
+      )}
     </>
   );
 }

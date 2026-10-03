@@ -17,13 +17,14 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 
 import com.ensar.clmp.auth.domain.AppUser;
+import com.ensar.clmp.common.domain.Versioned;
 import com.ensar.clmp.reference.domain.Region;
 import com.ensar.clmp.reference.domain.Team;
 
 /** A recruiter profile, optionally linked to one RECRUITER sign-in account (FR-015). */
 @Entity
 @Table(name = "recruiter")
-public class Recruiter {
+public class Recruiter implements Versioned {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -132,6 +133,7 @@ public class Recruiter {
         return user;
     }
 
+    @Override
     public Long getVersion() {
         return version;
     }

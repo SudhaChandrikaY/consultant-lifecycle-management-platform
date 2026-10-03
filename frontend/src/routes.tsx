@@ -9,6 +9,9 @@ import ConsultantFormPage from './pages/consultants/ConsultantFormPage';
 import ConsultantListPage from './pages/consultants/ConsultantListPage';
 import DashboardPage from './pages/dashboard/DashboardPage';
 import LoginPage from './pages/login/LoginPage';
+import RecruiterDetailPage from './pages/recruiters/RecruiterDetailPage';
+import RecruiterFormPage from './pages/recruiters/RecruiterFormPage';
+import RecruiterListPage from './pages/recruiters/RecruiterListPage';
 import NotFound from './pages/NotFound';
 
 /** Minimal placeholder for areas delivered by later stories. */
@@ -29,10 +32,10 @@ interface AppRoute {
 // contracts/ui-routes.md
 export const APP_ROUTES: AppRoute[] = [
   { path: '/', roles: ROUTE_ROLES.all, element: <DashboardPage /> },
-  { path: '/recruiters', roles: ROUTE_ROLES.adminManager, element: <Placeholder title="Recruiters" /> },
-  { path: '/recruiters/new', roles: ROUTE_ROLES.admin, element: <Placeholder title="New recruiter" /> },
-  { path: '/recruiters/:id/edit', roles: ROUTE_ROLES.admin, element: <Placeholder title="Edit recruiter" /> },
-  { path: '/recruiters/:id', roles: ROUTE_ROLES.adminManager, element: <Placeholder title="Recruiter" /> },
+  { path: '/recruiters', roles: ROUTE_ROLES.adminManager, element: <RecruiterListPage /> },
+  { path: '/recruiters/new', roles: ROUTE_ROLES.admin, element: <RecruiterFormPage /> },
+  { path: '/recruiters/:id/edit', roles: ROUTE_ROLES.admin, element: <RecruiterFormPage /> },
+  { path: '/recruiters/:id', roles: ROUTE_ROLES.adminManager, element: <RecruiterDetailPage /> },
   { path: '/consultants', roles: ROUTE_ROLES.all, element: <ConsultantListPage /> },
   { path: '/consultants/new', roles: ROUTE_ROLES.consultantEditors, element: <ConsultantFormPage /> },
   { path: '/consultants/:id/edit', roles: ROUTE_ROLES.consultantEditors, element: <ConsultantFormPage /> },

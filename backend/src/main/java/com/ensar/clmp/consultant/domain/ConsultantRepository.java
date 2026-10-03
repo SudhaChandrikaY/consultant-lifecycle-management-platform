@@ -42,7 +42,7 @@ public interface ConsultantRepository extends JpaRepository<Consultant, Long>, J
             + "where c.currentRecruiter.id in :recruiterIds group by c.currentRecruiter.id")
     List<RecruiterCount> countByCurrentRecruiterIdIn(@Param("recruiterIds") Collection<Long> recruiterIds);
 
-    long countByCurrentRecruiterId(Long recruiterId);
+    long countByCurrentRecruiter_Id(Long recruiterId);
 
     interface StatusCount {
         ConsultantStatus getStatus();

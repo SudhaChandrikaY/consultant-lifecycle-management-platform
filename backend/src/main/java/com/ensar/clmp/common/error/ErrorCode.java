@@ -15,7 +15,9 @@ public enum ErrorCode {
     CONCURRENT_MODIFICATION(HttpStatus.CONFLICT, "Record changed"),
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, "Duplicate email"),
     INVALID_TRANSITION(HttpStatus.UNPROCESSABLE_CONTENT, "Invalid transition"),
-    READINESS_INCOMPLETE(HttpStatus.UNPROCESSABLE_CONTENT, "Readiness incomplete");
+    READINESS_INCOMPLETE(HttpStatus.UNPROCESSABLE_CONTENT, "Readiness incomplete"),
+    CONFIRMATION_REQUIRED(HttpStatus.CONFLICT, "Confirmation required"),
+    RECRUITER_INACTIVE(HttpStatus.UNPROCESSABLE_CONTENT, "Recruiter inactive");
 
     private final HttpStatus status;
     private final String title;

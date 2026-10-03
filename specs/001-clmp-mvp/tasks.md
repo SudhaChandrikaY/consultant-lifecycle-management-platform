@@ -371,7 +371,7 @@ that recruiter are refused. As manager, reassign the consultant (quickstart V3).
 
 ### Tests for User Story 3
 
-- [ ] T067 [P] [US3] Write `backend/src/test/java/com/ensar/clmp/it/US3RecruiterAssignmentIT.java`:
+- [X] T067 [P] [US3] Write `backend/src/test/java/com/ensar/clmp/it/US3RecruiterAssignmentIT.java`:
   - AS 3.1: admin POST recruiter returns 201, ACTIVE, `assignedConsultantCount` 0.
   - AS 3.2: admin assign increments the count, and the consultant shows the recruiter.
   - AS 3.3: manager reassigns A→B. A's count goes down, B's goes up, and the history has a RECRUITER_ASSIGNMENT row (old and new names, manager, time).
@@ -385,14 +385,14 @@ that recruiter are refused. As manager, reassign the consultant (quickstart V3).
 
 ### Implementation for User Story 3
 
-- [ ] T068 [P] [US3] Create `backend/src/main/java/com/ensar/clmp/recruiter/service/RecruiterFilter.java` (`q, teamId, regionId, status`) and `recruiter/service/RecruiterSpecifications.java`.
-- [ ] T069 [US3] Create `backend/src/main/java/com/ensar/clmp/recruiter/service/RecruiterService.java`:
+- [X] T068 [P] [US3] Create `backend/src/main/java/com/ensar/clmp/recruiter/service/RecruiterFilter.java` (`q, teamId, regionId, status`) and `recruiter/service/RecruiterSpecifications.java`.
+- [X] T069 [US3] Create `backend/src/main/java/com/ensar/clmp/recruiter/service/RecruiterService.java`:
   - `create`: team and region must exist and be active (FR-011), email unique case-insensitive → 409 `DUPLICATE_EMAIL`. The optional `linkedUserId` must be a RECRUITER user not already linked (FR-015). Status starts ACTIVE.
   - `update`: version check.
   - `changeStatus(id, status, confirm, version)`: when deactivating with `assignedConsultantCount > 0` and `confirm != true`, throw `CONFIRMATION_REQUIRED` (add 409 to `ErrorCode`) with `affectedConsultantCount`. On success, write a STATUS history row (`entity_type=RECRUITER`) and return `consultantsFlaggedForReassignment`. Marketing and submissions are NOT altered (FR-014, edge case).
   - `list`: fills `assignedConsultantCount` with ONE grouped count query (`ConsultantRepository.countByCurrentRecruiterIdIn`).
   - `linkableUsers()`.
-- [ ] T070 [US3] Create the recruiter DTOs in `backend/src/main/java/com/ensar/clmp/recruiter/web/`:
+- [X] T070 [US3] Create the recruiter DTOs in `backend/src/main/java/com/ensar/clmp/recruiter/web/`:
   - `RecruiterRequest.java`: `fullName` `@NotBlank @Size(max=120)`, `email` `@NotBlank @Email @Size(max=254)`, `phone` `@Size(max=30)`, `teamId` `@NotNull`, `regionId` `@NotNull`, `linkedUserId`, `version`.
   - `RecruiterListItem.java`
   - `RecruiterDetail.java`
@@ -402,7 +402,7 @@ that recruiter are refused. As manager, reassign the consultant (quickstart V3).
   Then create `recruiter/web/RecruiterController.java`:
   - `GET /api/recruiters` and `GET /{id}`: ADMIN, MANAGER. Sort allowlist `fullName, status`.
   - `POST`, `PUT /{id}`, `POST /{id}/status`, `GET /linkable-users`: ADMIN.
-- [ ] T071 [US3] Create `backend/src/main/java/com/ensar/clmp/consultant/service/ConsultantAssignmentService.java` with `assign(consultantId, recruiterId, version, actor)`:
+- [X] T071 [US3] Create `backend/src/main/java/com/ensar/clmp/consultant/service/ConsultantAssignmentService.java` with `assign(consultantId, recruiterId, version, actor)`:
   - ADMIN or MANAGER only.
   - The target recruiter must be ACTIVE, else 422 `RECRUITER_INACTIVE` (add to `ErrorCode`, FR-034).
   - It replaces `current_recruiter_id`, so there is at most one primary recruiter (FR-033).
@@ -411,13 +411,13 @@ that recruiter are refused. As manager, reassign the consultant (quickstart V3).
 
   Add `POST /api/consultants/{id}/recruiter` (body `{recruiterId @NotNull, version @NotNull}`,
   ADMIN and MANAGER) to `ConsultantController.java`.
-- [ ] T072 [P] [US3] Create `frontend/src/components/ConfirmDialog.tsx`, first used here for recruiter deactivation.
-- [ ] T073 [P] [US3] Create `frontend/src/api/recruiters.ts` (all recruiter endpoints and types, appended to `types.ts`), and add `assignRecruiter` to `frontend/src/api/consultants.ts`.
-- [ ] T074 [US3] Create `frontend/src/pages/recruiters/RecruiterListPage.tsx`, with search, team, region, and status filters. Columns: name, team, region, `StatusBadge`, and assigned consultant count. An "Add recruiter" button is shown for ADMIN only.
-- [ ] T075 [US3] Create `frontend/src/pages/recruiters/RecruiterFormPage.tsx`, handling create and edit, with team and region selects from `/api/reference` and a linked user select from `/linkable-users`. Field errors and duplicate email are handled.
-- [ ] T076 [US3] Create `frontend/src/pages/recruiters/RecruiterDetailPage.tsx`, showing profile fields and the assigned count. For ADMIN it has Activate and Deactivate buttons. On 409 `CONFIRMATION_REQUIRED` it opens a `ConfirmDialog` reading "N consultants are still assigned and will be flagged for reassignment", then re-sends with `confirm=true`.
-- [ ] T077 [US3] Create `frontend/src/pages/consultants/AssignRecruiterDialog.tsx`, offering active recruiters only, and wire it into `ConsultantDetailPage.tsx` as an "Assign / Reassign recruiter" action visible when `canAssignRecruiter`. Show the "Needs reassignment" badge on the detail page.
-- [ ] T078 [US3] Run `./mvnw verify` and `npm test -- --run && npm run build`, and walk through quickstart V3.
+- [X] T072 [P] [US3] Create `frontend/src/components/ConfirmDialog.tsx`, first used here for recruiter deactivation.
+- [X] T073 [P] [US3] Create `frontend/src/api/recruiters.ts` (all recruiter endpoints and types, appended to `types.ts`), and add `assignRecruiter` to `frontend/src/api/consultants.ts`.
+- [X] T074 [US3] Create `frontend/src/pages/recruiters/RecruiterListPage.tsx`, with search, team, region, and status filters. Columns: name, team, region, `StatusBadge`, and assigned consultant count. An "Add recruiter" button is shown for ADMIN only.
+- [X] T075 [US3] Create `frontend/src/pages/recruiters/RecruiterFormPage.tsx`, handling create and edit, with team and region selects from `/api/reference` and a linked user select from `/linkable-users`. Field errors and duplicate email are handled.
+- [X] T076 [US3] Create `frontend/src/pages/recruiters/RecruiterDetailPage.tsx`, showing profile fields and the assigned count. For ADMIN it has Activate and Deactivate buttons. On 409 `CONFIRMATION_REQUIRED` it opens a `ConfirmDialog` reading "N consultants are still assigned and will be flagged for reassignment", then re-sends with `confirm=true`.
+- [X] T077 [US3] Create `frontend/src/pages/consultants/AssignRecruiterDialog.tsx`, offering active recruiters only, and wire it into `ConsultantDetailPage.tsx` as an "Assign / Reassign recruiter" action visible when `canAssignRecruiter`. Show the "Needs reassignment" badge on the detail page.
+- [X] T078 [US3] Run `./mvnw verify` and `npm test -- --run && npm run build`, and walk through quickstart V3.
 
 **Checkpoint**: US1–US3 (all P1) complete. The roster, assignment, and readiness flow works end
 to end.

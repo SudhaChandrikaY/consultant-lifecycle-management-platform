@@ -19,12 +19,11 @@ import com.ensar.clmp.auth.CurrentUser;
 import com.ensar.clmp.auth.domain.AppUser;
 import com.ensar.clmp.auth.domain.AppUserRepository;
 import com.ensar.clmp.auth.domain.Role;
-import com.ensar.clmp.consultant.domain.Consultant;
 import com.ensar.clmp.consultant.domain.ConsultantRepository;
 import com.ensar.clmp.consultant.domain.ConsultantStatus;
+import com.ensar.clmp.consultant.service.ConsultantAssignmentService;
 import com.ensar.clmp.consultant.service.ConsultantService;
 import com.ensar.clmp.consultant.web.ConsultantRequest;
-import com.ensar.clmp.history.service.HistoryService;
 import com.ensar.clmp.lifecycle.ConsultantLifecycleService;
 import com.ensar.clmp.recruiter.domain.Recruiter;
 import com.ensar.clmp.recruiter.domain.RecruiterRepository;
@@ -58,12 +57,12 @@ public class DemoDataSeeder implements ApplicationRunner {
     private final ConsultantRepository consultants;
     private final ConsultantService consultantService;
     private final ConsultantLifecycleService lifecycle;
-    private final HistoryService history;
+    private final ConsultantAssignmentService assignment;
 
     public DemoDataSeeder(Environment environment, PasswordEncoder passwordEncoder, Clock clock,
             TeamRepository teams, RegionRepository regions, AppUserRepository users,
             RecruiterRepository recruiters, ConsultantRepository consultants, ConsultantService consultantService,
-            ConsultantLifecycleService lifecycle, HistoryService history) {
+            ConsultantLifecycleService lifecycle, ConsultantAssignmentService assignment) {
         this.environment = environment;
         this.passwordEncoder = passwordEncoder;
         this.clock = clock;
@@ -74,7 +73,7 @@ public class DemoDataSeeder implements ApplicationRunner {
         this.consultants = consultants;
         this.consultantService = consultantService;
         this.lifecycle = lifecycle;
-        this.history = history;
+        this.assignment = assignment;
     }
 
     @Override
@@ -175,12 +174,9 @@ public class DemoDataSeeder implements ApplicationRunner {
         return consultantService.create(request, actor("hr")).id();
     }
 
-    /** Direct assignment with history until US3 adds the assignment service. */
     private void assign(Long consultantId, Long recruiterId) {
-        Consultant consultant = consultants.findById(consultantId).orElseThrow();
-        Recruiter recruiter = recruiters.findById(recruiterId).orElseThrow();
-        consultant.assignRecruiter(recruiter, clock.instant());
-        history.recordRecruiterAssignment(consultantId, null, recruiter.getFullName(), actor("admin"));
+        long version = consultants.findById(consultantId).orElseThrow().getVersion();
+        assignment.assign(consultantId, recruiterId, version, actor("admin"));
         consultants.flush();
     }
 
