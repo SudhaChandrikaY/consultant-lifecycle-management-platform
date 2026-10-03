@@ -1,0 +1,10 @@
+# Demo profile: seeds demo users and data at startup and enables the H2 console (ADMIN only).
+clmp:
+  seed:
+    demo: true
+
+spring:
+  h2:
+    console:
+      enabled: true
+      path: /h2-console

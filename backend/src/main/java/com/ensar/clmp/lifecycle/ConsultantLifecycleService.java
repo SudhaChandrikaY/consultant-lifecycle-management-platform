@@ -1,0 +1,278 @@
+package com.ensar.clmp.lifecycle;
+
+import static com.ensar.clmp.consultant.domain.ConsultantStatus.ACTIVE_PROJECT;
+import static com.ensar.clmp.consultant.domain.ConsultantStatus.BENCH;
+import static com.ensar.clmp.consultant.domain.ConsultantStatus.HOLD;
+import static com.ensar.clmp.consultant.domain.ConsultantStatus.INACTIVE;
+import static com.ensar.clmp.consultant.domain.ConsultantStatus.INTERVIEWING;
+import static com.ensar.clmp.consultant.domain.ConsultantStatus.MARKETING;
+import static com.ensar.clmp.consultant.domain.ConsultantStatus.PLACED;
+import static com.ensar.clmp.consultant.domain.ConsultantStatus.READY;
+
+import java.time.Clock;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.ensar.clmp.auth.CurrentUser;
+import com.ensar.clmp.auth.domain.Role;
+import com.ensar.clmp.common.error.BusinessException;
+import com.ensar.clmp.common.error.ErrorCode;
+import com.ensar.clmp.common.service.VersionGuard;
+import com.ensar.clmp.consultant.domain.Consultant;
+import com.ensar.clmp.consultant.domain.ConsultantRepository;
+import com.ensar.clmp.consultant.domain.ConsultantStatus;
+import com.ensar.clmp.consultant.service.ReadinessChecker;
+import com.ensar.clmp.history.domain.HistoryEntityType;
+import com.ensar.clmp.history.domain.TriggerEvent;
+import com.ensar.clmp.history.service.HistoryService;
+import com.ensar.clmp.history.service.TriggerRef;
+import com.ensar.clmp.marketing.domain.MarketingAssignment;
+import com.ensar.clmp.marketing.domain.MarketingAssignmentRepository;
+import com.ensar.clmp.marketing.domain.MarketingStatus;
+import com.ensar.clmp.placement.domain.Placement;
+import com.ensar.clmp.placement.domain.PlacementRepository;
+import com.ensar.clmp.submission.domain.Submission;
+import com.ensar.clmp.submission.domain.SubmissionRepository;
+import com.ensar.clmp.submission.domain.SubmissionStatus;
+
+/**
+ * The single owner of consultant status rules (research R9): the manual transition table
+ * (FR-031) and, from US4 on, the automatic transitions driven by marketing, submissions, and
+ * placements (FR-032). Every change writes a history row in the caller's transaction.
+ */
+@Service
+public class ConsultantLifecycleService {
+
+    /** FR-031 manual transitions, in the order actions are offered. */
+    private static final Map<ConsultantStatus, List<ConsultantStatus>> MANUAL = new EnumMap<>(ConsultantStatus.class);
+
+    static {
+        MANUAL.put(BENCH, List.of(READY, HOLD, INACTIVE));
+        MANUAL.put(READY, List.of(BENCH, HOLD, INACTIVE));
+        MANUAL.put(MARKETING, List.of(HOLD, INACTIVE));
+        MANUAL.put(INTERVIEWING, List.of(HOLD, INACTIVE));
+        MANUAL.put(PLACED, List.of(ACTIVE_PROJECT, INACTIVE));
+        MANUAL.put(ACTIVE_PROJECT, List.of(BENCH, INACTIVE));
+        MANUAL.put(HOLD, List.of(BENCH, READY, INACTIVE));
+        MANUAL.put(INACTIVE, List.of(BENCH));
+    }
+
+    private static final Set<ConsultantStatus> REASON_REQUIRED = Set.of(HOLD, INACTIVE);
+
+    private final ConsultantRepository consultants;
+    private final MarketingAssignmentRepository marketing;
+    private final SubmissionRepository submissions;
+    private final PlacementRepository placements;
+    private final HistoryService history;
+    private final ReadinessChecker readiness;
+    private final VersionGuard versionGuard;
+    private final Clock clock;
+
+    public ConsultantLifecycleService(ConsultantRepository consultants, MarketingAssignmentRepository marketing,
+            SubmissionRepository submissions, PlacementRepository placements, HistoryService history,
+            ReadinessChecker readiness, VersionGuard versionGuard, Clock clock) {
+        this.consultants = consultants;
+        this.marketing = marketing;
+        this.submissions = submissions;
+        this.placements = placements;
+        this.history = history;
+        this.readiness = readiness;
+        this.versionGuard = versionGuard;
+        this.clock = clock;
+    }
+
+    /** FR-031: ADMIN or HR_OPERATIONS changes a consultant's status by hand. */
+    @Transactional
+    public Consultant changeStatusManually(Long consultantId, ConsultantStatus target, String reason, Long version,
+            CurrentUser actor) {
+        if (!actor.isAny(Role.ADMIN, Role.HR_OPERATIONS)) {
+            throw new AccessDeniedException("Only ADMIN and HR_OPERATIONS change consultant status manually");
+        }
+        Consultant consultant = consultants.findByIdForUpdate(consultantId).orElseThrow();
+        versionGuard.check(consultant, version);
+
+        ConsultantStatus from = consultant.getStatus();
+        List<ConsultantStatus> allowed = MANUAL.getOrDefault(from, List.of());
+        if (!allowed.contains(target)) {
+            throw new BusinessException(ErrorCode.INVALID_TRANSITION,
+                    "Cannot change status from " + from + " to " + target + ".",
+                    Map.of("currentStatus", from, "allowedTransitions", allowed));
+        }
+        if (REASON_REQUIRED.contains(target) && (reason == null || reason.isBlank())) {
+            throw BusinessException.fieldError("reason", "A reason is required.");
+        }
+        if (target == READY) {
+            List<String> missing = readiness.missingItems(consultant);
+            if (!missing.isEmpty()) {
+                throw new BusinessException(ErrorCode.READINESS_INCOMPLETE,
+                        "The profile is not complete enough to mark Ready.", Map.of("missingItems", missing));
+            }
+        }
+        if (target == ACTIVE_PROJECT) {
+            guardActiveProject(consultant);
+        }
+        if (target == INACTIVE) {
+            guardInactive(consultant);
+        }
+
+        apply(consultant, target, reason, actor);
+
+        if (target == HOLD) {
+            cascadeOnHold(consultant, actor);
+        }
+        if (target == INACTIVE) {
+            cascadeOnInactive(consultant, actor);
+        }
+        return consultant;
+    }
+
+    /** Manual targets this caller may choose from the current status (empty for MANAGER and RECRUITER). */
+    public List<ConsultantStatus> allowedManualTransitions(Consultant consultant, CurrentUser actor) {
+        if (!actor.isAny(Role.ADMIN, Role.HR_OPERATIONS)) {
+            return List.of();
+        }
+        return MANUAL.getOrDefault(consultant.getStatus(), List.of());
+    }
+
+    // ---- Automatic transitions (FR-032, FR-036) ----
+
+    /** Activation or reopen of marketing: a Ready consultant becomes Marketing. */
+    public void onMarketingActivatedOrReopened(MarketingAssignment assignment, TriggerEvent event, CurrentUser actor) {
+        Consultant consultant = assignment.getConsultant();
+        if (consultant.getStatus() == READY) {
+            applyAutomatic(consultant, MARKETING, actor,
+                    new TriggerRef(event, HistoryEntityType.MARKETING_ASSIGNMENT, assignment.getId()));
+        }
+    }
+
+    /** Closing marketing without a placement: a Marketing consultant returns to Ready. */
+    public void onMarketingClosed(MarketingAssignment assignment, CurrentUser actor) {
+        Consultant consultant = assignment.getConsultant();
+        if (consultant.getStatus() == MARKETING) {
+            applyAutomatic(consultant, READY, actor, new TriggerRef(TriggerEvent.MARKETING_CLOSED,
+                    HistoryEntityType.MARKETING_ASSIGNMENT, assignment.getId()));
+        }
+    }
+
+    /**
+     * Submission status side effects (FR-032). Entering Interview Scheduled makes a Ready or
+     * Marketing consultant Interviewing; once no submission remains in an interview or offer stage,
+     * an Interviewing consultant returns to Marketing (Active marketing exists) or Ready. A
+     * consultant on Hold is never changed by submission activity (research R18-4).
+     */
+    public void onSubmissionStatusChanged(Submission submission, SubmissionStatus oldStatus,
+            SubmissionStatus newStatus, CurrentUser actor) {
+        Consultant consultant = submission.getConsultant();
+        if (consultant.getStatus() == HOLD) {
+            return;
+        }
+        if (newStatus == SubmissionStatus.INTERVIEW_SCHEDULED
+                && (consultant.getStatus() == READY || consultant.getStatus() == MARKETING)) {
+            applyAutomatic(consultant, INTERVIEWING, actor, new TriggerRef(TriggerEvent.SUBMISSION_INTERVIEW_SCHEDULED,
+                    HistoryEntityType.SUBMISSION, submission.getId()));
+            return;
+        }
+        if (consultant.getStatus() == INTERVIEWING && !SubmissionStatus.INTERVIEW_OR_OFFER.contains(newStatus)
+                && !submissions.existsByConsultant_IdAndStatusIn(consultant.getId(), SubmissionStatus.INTERVIEW_OR_OFFER)) {
+            boolean activeMarketing = marketing.existsByConsultant_IdAndStatus(consultant.getId(), MarketingStatus.ACTIVE);
+            applyAutomatic(consultant, activeMarketing ? MARKETING : READY, actor,
+                    new TriggerRef(TriggerEvent.SUBMISSION_LEFT_INTERVIEW_STAGES, HistoryEntityType.SUBMISSION,
+                            submission.getId()));
+        }
+    }
+
+    private static final java.util.Set<ConsultantStatus> PLACEABLE = java.util.Set.of(READY, MARKETING, INTERVIEWING,
+            HOLD);
+
+    /**
+     * FR-072, one transaction: the submission goes Offer → Placed, the consultant (Ready, Marketing,
+     * Interviewing, or Hold) goes to Placed, and an open marketing assignment closes with "Placed".
+     * Every change is recorded as triggered by this placement.
+     */
+    public void onPlacementCreated(Placement placement, Submission submission, CurrentUser actor) {
+        TriggerRef trigger = new TriggerRef(TriggerEvent.PLACEMENT_CREATED, HistoryEntityType.PLACEMENT,
+                placement.getId());
+        SubmissionStatus oldSubmissionStatus = submission.getStatus();
+        submission.changeStatus(SubmissionStatus.PLACED);
+        history.recordSystemStatusChange(HistoryEntityType.SUBMISSION, submission.getId(),
+                submission.getConsultant().getId(), submission.getRecruiter().getId(), oldSubmissionStatus.name(),
+                SubmissionStatus.PLACED.name(), null, actor, trigger);
+
+        Consultant consultant = submission.getConsultant();
+        if (PLACEABLE.contains(consultant.getStatus())) {
+            applyAutomatic(consultant, PLACED, actor, trigger);
+        }
+        marketing.findOpenFor(consultant.getId()).ifPresent(a -> applyToMarketing(a, MarketingStatus.CLOSED,
+                MarketingAssignment.PLACED_REASON, actor, trigger));
+    }
+
+    private void applyAutomatic(Consultant consultant, ConsultantStatus target, CurrentUser actor,
+            TriggerRef trigger) {
+        ConsultantStatus from = consultant.getStatus();
+        consultant.changeStatus(target, clock.instant());
+        history.recordSystemStatusChange(HistoryEntityType.CONSULTANT, consultant.getId(), consultant.getId(), null,
+                from.name(), target.name(), null, actor, trigger);
+    }
+
+    /** Moves a marketing assignment as a side effect of another record's change. */
+    private void applyToMarketing(MarketingAssignment assignment, MarketingStatus target, String reason,
+            CurrentUser actor, TriggerRef trigger) {
+        MarketingStatus from = assignment.getStatus();
+        assignment.changeStatus(target, reason, clock.instant());
+        history.recordSystemStatusChange(HistoryEntityType.MARKETING_ASSIGNMENT, assignment.getId(),
+                assignment.getConsultant().getId(), assignment.getOwnerRecruiter().getId(), from.name(), target.name(),
+                reason, actor, trigger);
+    }
+
+    private void apply(Consultant consultant, ConsultantStatus target, String reason, CurrentUser actor) {
+        ConsultantStatus from = consultant.getStatus();
+        consultant.changeStatus(target, clock.instant());
+        history.recordStatusChange(HistoryEntityType.CONSULTANT, consultant.getId(), consultant.getId(), null,
+                from.name(), target.name(), reason, null, actor);
+    }
+
+    /** Refuses Inactive while any submission is still open (edge case "inactive with open submissions"). */
+    private void guardInactive(Consultant consultant) {
+        List<Long> open = submissions.findByConsultant_IdAndStatusInOrderById(consultant.getId(), SubmissionStatus.OPEN)
+                .stream().map(Submission::getId).toList();
+        if (!open.isEmpty()) {
+            throw new BusinessException(ErrorCode.OPEN_SUBMISSIONS_EXIST,
+                    "Withdraw or close the consultant's open submissions before setting Inactive.",
+                    Map.of("openSubmissionIds", open));
+        }
+    }
+
+    /** PLACED -> ACTIVE_PROJECT only on or after the latest placement's start date (AS 6.5). */
+    private void guardActiveProject(Consultant consultant) {
+        Placement latest = placements.findFirstByConsultant_IdOrderByCreatedAtDescIdDesc(consultant.getId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.BUSINESS_RULE,
+                        "The consultant has no placement to start."));
+        java.time.LocalDate today = java.time.LocalDate.now(clock);
+        if (today.isBefore(latest.getStartDate())) {
+            throw new BusinessException(ErrorCode.BUSINESS_RULE,
+                    "Active Project can be set on or after the placement start date (" + latest.getStartDate() + ").");
+        }
+    }
+
+    /** Consultant on Hold puts an Active marketing assignment on Hold (FR-032). */
+    private void cascadeOnHold(Consultant consultant, CurrentUser actor) {
+        marketing.findOpenFor(consultant.getId())
+                .filter(a -> a.getStatus() == MarketingStatus.ACTIVE)
+                .ifPresent(a -> applyToMarketing(a, MarketingStatus.HOLD, "Consultant put on Hold", actor,
+                        new TriggerRef(TriggerEvent.CONSULTANT_HOLD, HistoryEntityType.CONSULTANT, consultant.getId())));
+    }
+
+    /** Consultant Inactive closes the open marketing assignment with reason "Consultant inactive" (FR-032). */
+    private void cascadeOnInactive(Consultant consultant, CurrentUser actor) {
+        marketing.findOpenFor(consultant.getId())
+                .ifPresent(a -> applyToMarketing(a, MarketingStatus.CLOSED, MarketingAssignment.INACTIVE_REASON, actor,
+                        new TriggerRef(TriggerEvent.CONSULTANT_INACTIVE, HistoryEntityType.CONSULTANT,
+                                consultant.getId())));
+    }
+}
