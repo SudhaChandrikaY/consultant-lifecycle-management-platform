@@ -33,7 +33,7 @@ each role seeing and doing only what its responsibilities require.
 | Submissions: view | All | All | Own (see FR-063) | — |
 | Submissions: create / update status / add notes | Yes | — | Own (see FR-063) | — |
 | Placements: view | All | All | Own (see FR-073) | — |
-| Placements: create from qualifying submission | Yes | — | Own submissions | — |
+| Placements: create from qualifying submission | Yes | — | Own submissions (submission's recruiter, see FR-070) | — |
 | Placements: edit | Yes | — | — | — |
 | Reports | Yes | Yes | — | — |
 
@@ -47,6 +47,13 @@ each role seeing and doing only what its responsibilities require.
 - Q: Does HR_OPERATIONS use the Placements workspace? → A: No. HR_OPERATIONS may see a consultant's current lifecycle status (including Placed / Active Project) on the consultant record, but has no access to the Placements workspace, placement records, or commercial placement details.
 - Q: Should Managers create and update marketing assignments, submissions, and placements, or only view them and reassign consultants? → A: Managers view everything organization-wide, assign/reassign consultants, and may put marketing assignments on hold, reopen them, or close them; they cannot create or edit marketing assignment details, submissions, or placements.
 - Q: Should cross-module workflow events change consultant and marketing status automatically? → A: Yes. Keep explicit automatic transitions where they reflect business rules — at minimum, a submission reaching Interview Scheduled moves the consultant to Interviewing, and creating a placement moves the consultant to Placed and closes the open marketing assignment — and every automatic transition records the user and triggering event that caused it, and when.
+
+### Session 2026-10-02 (analysis remediation)
+
+- Q: Which recruiter may create a placement, and who is the placement's recruiter? → A: ADMIN may create a placement from any qualifying (Offer) submission. A RECRUITER may create one only from a qualifying submission where they are the submission's recruiter. The placement's recruiter is always the submission's recruiter. MANAGER and ADMIN keep organization-wide visibility of placements.
+- Q: Can a consultant on Hold be placed? → A: Yes, from an already-existing qualifying Offer submission. Creating the placement moves the consultant Hold → Placed and closes the open marketing assignment. New submissions remain blocked while the consultant is on Hold.
+- Q: In which consultant status may a new marketing assignment be created? → A: Ready only.
+- Q: How is "interviews scheduled" counted in the Vendor/Client Activity report? → A: As submissions whose current status is Interview Scheduled and whose submitted date falls within the selected reporting range, so the figure can be reproduced from the submission list with the same filters.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -244,9 +251,10 @@ consultant, vendor, client, and job title and confirm the duplicate warning.
 
 ### User Story 6 - Convert an Offer into a Placement (Priority: P3)
 
-When a submission reaches Offer, the recruiter or a manager converts it into a placement,
-confirming start date, bill rate, and contract term. The consultant becomes Placed, and later
-Active Project once they start.
+When a submission reaches Offer, the submission's recruiter or an Admin converts it into a
+placement, confirming start date, bill rate, and contract term. The consultant becomes Placed, and
+later Active Project once they start. Managers can view placements organization-wide but cannot
+create or edit them.
 
 **Why this priority**: Placement completes the lifecycle and is the key business outcome, but it
 depends on stories 2–5.
@@ -351,7 +359,8 @@ against the underlying submission, placement, and consultant lists.
   reporting credit, but the new recruiter can also view and update them.
 - **Consultant put on Hold during marketing**: Any Active marketing assignment moves to Hold
   automatically (FR-032, FR-036); open submissions are left as is and flagged on the consultant
-  details page.
+  details page. A consultant on Hold may still be placed from an existing Offer submission
+  (FR-032, FR-070), but cannot receive new submissions (FR-052).
 - **Consultant set to Inactive**: Refused while the consultant has open submissions (any status
   other than Rejected, Withdrawn, or Placed); any open marketing assignment is closed with reason
   "Consultant inactive".
@@ -461,7 +470,7 @@ against the underlying submission, placement, and consultant lists.
     Interview Scheduled (no change if already Interviewing)
   - Consultant Interviewing → Marketing (or Ready, if no Active marketing assignment) when the
     consultant no longer has any submission in Interview Scheduled, Interview Cleared, or Offer
-  - Consultant Ready, Marketing, or Interviewing → Placed when a placement is created
+  - Consultant Ready, Marketing, Interviewing, or Hold → Placed when a placement is created
   - Marketing assignment Draft, Active, or Hold → Closed (reason "Placed") when a placement is
     created for the consultant
   - Marketing assignment Active → Hold when the consultant is set to Hold
@@ -482,7 +491,7 @@ against the underlying submission, placement, and consultant lists.
 - **FR-040**: ADMIN and the consultant's assigned RECRUITER MUST be able to create and
   update marketing assignments with: consultant, owning recruiter (defaults to the consultant's
   assigned recruiter), owning team (derived from the recruiter), start date, target date, status,
-  and notes.
+  and notes. A new marketing assignment MUST only be created for a consultant in Ready status.
 - **FR-041**: Marketing statuses MUST be exactly: Draft, Active, Hold, Closed. ADMIN and the
   consultant's assigned RECRUITER may perform all transitions below; MANAGER may perform only the
   hold, reopen, and close transitions. Allowed transitions:
@@ -549,7 +558,8 @@ against the underlying submission, placement, and consultant lists.
 #### Placements
 
 - **FR-070**: A placement MUST only be created from a submission in Offer status, by ADMIN
-  or a RECRUITER permitted to update that submission (FR-063).
+  or by the RECRUITER who is that submission's recruiter. The placement's recruiter MUST be the
+  submission's recruiter.
 - **FR-071**: A placement MUST record: source submission, consultant, recruiter, vendor, client,
   job title, start date, bill rate (pre-filled from the submission, editable), and contract term
   in months (whole number 1–60); expected end date MUST be shown as start date plus term.
@@ -560,7 +570,8 @@ against the underlying submission, placement, and consultant lists.
   rate, and contract term, and MUST support filtering by recruiter, client, vendor, and start
   date range. RECRUITER users MUST see only placements where they are the placement's recruiter.
 - **FR-074**: ADMIN MUST be able to edit a placement's start date, bill rate, and
-  contract term; each edit MUST be recorded with user and time.
+  contract term; each edit MUST be recorded with user and time. An edited start date MUST NOT be
+  earlier than the source submission's submitted date.
 - **FR-075**: A consultant in Placed or Active Project status MUST NOT receive another placement.
 - **FR-076**: After a placement is created, the system MUST show the consultant's other open
   submissions and allow the user to withdraw them; it MUST NOT change them automatically.
@@ -592,7 +603,9 @@ against the underlying submission, placement, and consultant lists.
   Activity.
 - **FR-091**: Submissions by Recruiter, Placements by Recruiter, and Vendor/Client Activity MUST
   accept a date range, defaulting to the current calendar month; Consultant Pipeline and Bench and
-  Ready Counts MUST reflect current status.
+  Ready Counts MUST reflect current status. In Vendor/Client Activity, submissions and interviews
+  scheduled are counted by submitted date within the range (interviews scheduled = submissions
+  currently in Interview Scheduled), and placements by placement creation date within the range.
 - **FR-092**: Report totals MUST agree with the corresponding filtered lists for the same criteria.
 - **FR-093**: Reports MUST be viewable on screen; export to files is out of scope.
 
