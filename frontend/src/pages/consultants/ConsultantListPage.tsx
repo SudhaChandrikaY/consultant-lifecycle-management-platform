@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { consultantsApi } from '../../api/consultants';
 import { referenceApi } from '../../api/reference';
@@ -8,6 +7,7 @@ import { can } from '../../auth/permissions';
 import DataTable, { type Column } from '../../components/DataTable';
 import FilterBar from '../../components/FilterBar';
 import PageLayout from '../../components/PageLayout';
+import UrlSearchField from '../../components/UrlSearchField';
 import StatusBadge, { Badge } from '../../components/StatusBadge';
 import { useApi } from '../../hooks/useApi';
 import { useUrlFilters } from '../../hooks/useUrlFilters';
@@ -43,12 +43,9 @@ const COLUMNS: Column<ConsultantListItem>[] = [
 export default function ConsultantListPage() {
   const { user } = useAuth();
   const filters = useUrlFilters();
-  const [search, setSearch] = useState(filters.get('q') ?? '');
   const reference = useApi(() => referenceApi.get(), []);
   const skills = useApi(() => consultantsApi.skills(), []);
   const list = useApi(() => consultantsApi.list(filters.query), [filters.queryString]);
-
-  useEffect(() => setSearch(filters.get('q') ?? ''), [filters]);
 
   const statuses = filters.getAll('status');
 
@@ -64,23 +61,7 @@ export default function ConsultantListPage() {
       }
     >
       <FilterBar onClear={filters.clear}>
-        <form
-          className="field"
-          onSubmit={(e) => {
-            e.preventDefault();
-            filters.set({ q: search.trim() || null });
-          }}
-        >
-          <label htmlFor="filter-q">Search name</label>
-          <input
-            id="filter-q"
-            type="search"
-            value={search}
-            placeholder="Name, then Enter"
-            onChange={(e) => setSearch(e.target.value)}
-            onBlur={() => search !== (filters.get('q') ?? '') && filters.set({ q: search.trim() || null })}
-          />
-        </form>
+        <UrlSearchField label="Search name" />
         <div className="field">
           <label htmlFor="filter-status">Status</label>
           <select

@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { recruitersApi } from '../../api/recruiters';
 import { referenceApi } from '../../api/reference';
@@ -8,6 +7,7 @@ import { can } from '../../auth/permissions';
 import DataTable, { type Column } from '../../components/DataTable';
 import FilterBar from '../../components/FilterBar';
 import PageLayout from '../../components/PageLayout';
+import UrlSearchField from '../../components/UrlSearchField';
 import StatusBadge from '../../components/StatusBadge';
 import { useApi } from '../../hooks/useApi';
 import { useUrlFilters } from '../../hooks/useUrlFilters';
@@ -28,11 +28,8 @@ const COLUMNS: Column<RecruiterListItem>[] = [
 export default function RecruiterListPage() {
   const { user } = useAuth();
   const filters = useUrlFilters();
-  const [search, setSearch] = useState(filters.get('q') ?? '');
   const reference = useApi(() => referenceApi.get(), []);
   const list = useApi(() => recruitersApi.list(filters.query), [filters.queryString]);
-
-  useEffect(() => setSearch(filters.get('q') ?? ''), [filters]);
 
   return (
     <PageLayout
@@ -46,22 +43,7 @@ export default function RecruiterListPage() {
       }
     >
       <FilterBar onClear={filters.clear}>
-        <form
-          className="field"
-          onSubmit={(e) => {
-            e.preventDefault();
-            filters.set({ q: search.trim() || null });
-          }}
-        >
-          <label htmlFor="filter-q">Search name</label>
-          <input
-            id="filter-q"
-            type="search"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            onBlur={() => search !== (filters.get('q') ?? '') && filters.set({ q: search.trim() || null })}
-          />
-        </form>
+        <UrlSearchField label="Search name" />
         <div className="field">
           <label htmlFor="filter-team">Team</label>
           <select id="filter-team" value={filters.get('teamId') ?? ''} onChange={(e) => filters.set({ teamId: e.target.value })}>
