@@ -31,17 +31,13 @@
 
 ## Notes
 
-- **Resolved 2026-10-03**: Q1 (GitHub access) → read, plus create issues and comment on pull
-  requests; Q2 (demonstration) → Part 1 full loop on a kept behavior-preserving change plus Part 2
-  seeded-defect review on a discarded scratch branch. Recorded under Clarifications; SC-001,
-  SC-008, FR-052, FR-070, and Assumptions updated to match.
-- **Validation iterations**: 2 (initial pass; post-clarification consistency pass). All items pass.
-- **Audience note**: This feature's users are CLMP developers and reviewers, so the
-  "non-technical stakeholder" and "technology-agnostic" items are judged for engineering
-  stakeholders. Naming Claude Code agents, skills, and the GitHub integration describes the
-  requested capability (it is the user's stated requirement), not an implementation choice. File
-  locations, file formats, configuration keys, and the GitHub connection method are deferred to
-  the plan.
-- **WSL / Windows drive** references describe a known, documented environment condition that a
-  requirement must handle (FR-033, SC-004); they are not an implementation choice.
-- Items marked incomplete require spec updates before `/speckit-clarify` or `/speckit-plan`.
+- **Simplified 2026-10-03** at the developer's request. GitHub is now read-only; the demonstration
+  is one real improvement; the command guard, planted-defect exercise, GitHub writes, OAuth
+  experiments, framework-testing evidence, and timing requirements were removed. The original
+  Q1/Q2 answers are marked superseded under Clarifications. The re-validation passes all items.
+- **Validation iterations**: 3 (initial; post-clarification; post-simplification).
+- **Audience note**: The users are CLMP developers and reviewers, so naming Claude Code agents,
+  skills, and the GitHub integration describes the requested capability. File locations and
+  formats are in the plan.
+- **WSL / `/mnt/` references** describe a known environment condition the validator must handle
+  (FR-032, SC-004); they are not an implementation choice.
