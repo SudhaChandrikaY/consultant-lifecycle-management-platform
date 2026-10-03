@@ -56,20 +56,6 @@ Report: <Impact|Review|Validation> · Agent: <agent name> · Target: <change / b
 
 ## 3. Demonstration record
 
-There is one file, `specs/002-agentic-engineering/demo.md`, with these sections in order:
-
-1. **Baseline**: the backend test totals and the frontend typecheck/build status before the
-   change.
-2. **Impact**: the analyst report, verbatim.
-3. **Implementation**: the files changed and the commit.
-4. **Review round n**: the reviewer report, verbatim.
-5. **Validation round n**: the validator report, verbatim.
-6. **Findings**: one row per finding from any review or validation round:
-   `finding | from | resolution (fixed · accepted · rejected) | reason | confirmed in round`.
-7. **Result**: the final test totals, the `git status` checks (SC-003), and the final verdict.
-
-Agent reports are pasted unchanged. Any comment from the main agent goes in a
-`> Note (main agent): …` block.
-
-Flow: analyze → implement → review → (fix → re-review)* → validate → (fix → re-review →
-re-validate)* → human review.
+There is one short file, `specs/002-agentic-engineering/demo.md`: a table with one row per
+component, giving the component invoked, the example request, the result (summarized), and what it
+demonstrated.

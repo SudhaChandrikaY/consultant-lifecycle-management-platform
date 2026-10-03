@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-03
 
-**Status**: Draft (simplified 2026-10-03)
+**Status**: Draft (simplified for learning, 2026-10-03)
 
 **Input**: User description: "Create feature 002-agentic-engineering for CLMP. Add a project-specific agentic engineering layer to the existing Consultant Lifecycle Management Platform so recurring analysis, implementation review, testing, and repository workflows can be delegated consistently and independently. This feature must not change CLMP business behavior or application functionality. Requirements: (1) custom Claude Code subagents for codebase analysis, independent code review, and test validation; (2) reusable project-owned Agent Skills for the CLMP feature/change workflow and for validation/release readiness, clearly separated from the Spec Kit-generated speckit-* skills, which must not be modified; (3) one MCP integration with a concrete current need — preferably GitHub — that is repository-safe, commits no credentials, takes secrets from environment/user configuration, has least-privilege permissions, and is documented; (4) a demonstration of the layer on the real CLMP repository through a small, controlled engineering task or review exercise, with evidence that analysis is separated from independent review, that validation is independent, and that findings and corrections are traceable; (5) documentation of each subagent, when to use each skill, how custom skills differ from Spec Kit skills, what the MCP integration provides, how access and secrets are controlled, and how the pieces fit the Spec-Driven Development lifecycle. Constraints: no change to CLMP business requirements or role permissions; no deployment, PostgreSQL, Flyway, Docker, SSO, or other production infrastructure; no unnecessary agents or skills; preserve Spec Kit-managed files unless the supported extension mechanism requires otherwise; comply with the constitution and CLAUDE.md."
 
@@ -23,7 +23,7 @@ the recurring parts of that work are done consistently, and by separate roles:
 - **One read-only GitHub integration** that gives agents repository, branch, pull request, and
   issue context.
 
-The layer is shown working on one small, real CLMP improvement, which is kept in the repository.
+Each component is shown working once, with a simple request against existing CLMP code.
 
 The goal is a small, understandable, working layer. Hardening the agent framework itself (custom
 command guards, adversarial exercises, write-capable integrations) is out of scope.
@@ -58,7 +58,7 @@ data, or user-facing functionality.
   claims real and demonstrable.
 - **GitHub integration**: read-only. No issue creation, PR comments, merge, push, delete,
   settings, or secrets operations. Use the simplest supported configuration.
-- **Demonstration**: one real improvement only (the missing unlinked-recruiter list-scope test),
+- **Demonstration** (later superseded by the learning-scope simplification below): one real improvement only (the missing unlinked-recruiter list-scope test),
   taken through analysis → implementation → independent review → fixes → independent validation.
   No planted-defect exercise.
 - **Removed**:
@@ -68,6 +68,15 @@ data, or user-facing functionality.
   - timing requirements.
 - **How restrictions are enforced**: by each agent's tool allowlist plus its written
   instructions, with the main agent confirming afterwards that nothing changed (`git status`).
+
+### Learning-scope simplification 2026-10-03
+
+- Purpose: learning the difference between **subagents**, **skills**, and **MCP**, not building an
+  agent-testing platform.
+- The recruiter3 / `UnlinkedRecruiterScopeIT` demonstration, the formal analyze → implement →
+  review → validate loop, repeated review/validation rounds, and the long full-validation
+  demonstration were **removed**. No application code or test is added by this feature.
+- Each component is demonstrated **once**, with a simple prompt, on existing CLMP code (US6).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -228,38 +237,33 @@ available. The repository contains no credential.
 
 ---
 
-### User Story 6 - Demonstrate the Layer on Real CLMP Work (Priority: P2)
+### User Story 6 - See Each Component Work Once (Priority: P2)
 
-The layer is used for one small, genuine CLMP improvement: adding the missing automated test that
-an unlinked RECRUITER (one with no recruiter profile) gets empty Marketing, Submissions, and
-Placements lists. The improvement goes through this loop:
+Each component is invoked once, with a simple request against **existing** CLMP code, and the
+result is noted in a short record:
 
-1. The analyst identifies the impact.
-2. The main agent implements the change.
-3. The reviewer reviews it independently.
-4. The validator validates it independently.
-5. Any findings are fixed, then re-reviewed and revalidated.
+| Component | Example request |
+|-----------|-----------------|
+| Analyst | Inspect the existing Consultants search and list the files and modules involved |
+| Reviewer | Review the existing name-search fix (commit `b46385e`) and report concerns |
+| Validator | Run one small targeted validation for that search fix |
+| Change workflow skill | Explain how it would approach a small CLMP change |
+| Readiness skill | List the checks it would choose for a small frontend-only change |
+| GitHub MCP | Read PR #1 and summarize what it did |
 
-The test is kept, and the reports are recorded together so that a human reviewer can follow
-the loop.
+**Why this priority**: Seeing each piece work once makes the difference between subagents,
+skills, and MCP concrete. Configuration alone doesn't show that.
 
-**Why this priority**: Configuration alone doesn't prove that the layer works. This is the
-feature's acceptance test, and it leaves real value behind.
-
-**Independent Test**: Read the demonstration record. It contains the analyst's impact report, the
-reviewer's report(s), the validator's report(s), and the outcome of every finding. The new test
-passes in the repository.
+**Independent Test**: Read the short record. Each component has an entry with the request, the
+result, and what it demonstrated, and no application file changed.
 
 **Acceptance Scenarios**:
 
-1. **Given** the improvement, **When** it is made, **Then** the impact analysis, the review, and
-   the validation are each produced by their own agent, and the record shows which agent produced
-   which report.
-2. **Given** review or validation findings, **When** they are addressed, **Then** each one is
-   recorded as fixed, accepted, or rejected with a reason, and the change is re-reviewed and
-   revalidated.
-3. **Given** the finished demonstration, **When** the project checks run, **Then** they pass
-   (apart from a documented environment blocker) and no CLMP behavior has changed.
+1. **Given** each component, **When** it is invoked with its example request, **Then** it
+   responds within its role (the analyst and reviewer read only; the validator runs only a small
+   targeted check; the skills explain; the MCP reads GitHub).
+2. **Given** the demonstrations are complete, **When** `git status` is checked, **Then** no
+   application file has changed.
 
 ---
 
@@ -410,11 +414,10 @@ lifecycle situations.
 
 #### Demonstration
 
-- **FR-070**: The layer MUST be demonstrated on the improvement described in User Story 6, and
-  the resulting test MUST be kept.
-- **FR-071**: One demonstration record MUST contain the impact report, the review report(s), the
-  validation report(s), and the outcome of each finding, each labelled with the agent that
-  produced it.
+- **FR-070**: Each of the six components MUST be demonstrated once with the simple request
+  listed in User Story 6. No application code or test is added to demonstrate them.
+- **FR-071**: A short record MUST list, for each component, the request, the result, and what it
+  demonstrated.
 
 #### Documentation
 
@@ -430,8 +433,7 @@ lifecycle situations.
 #### No business change
 
 - **FR-090**: This feature MUST NOT change CLMP application source code, business requirements,
-  role permissions, data, or seed content. The only exception is the new test added by the
-  demonstration.
+  role permissions, data, seed content, or tests.
 - **FR-091**: This feature MUST NOT add application dependencies or infrastructure (deployment,
   database, containers, SSO, and so on).
 
@@ -444,24 +446,19 @@ lifecycle situations.
 - **GitHub integration configuration**: the shared, read-only server definition. It references,
   but never contains, the developer's token.
 - **Impact, review, and validation reports**: the fixed-format agent outputs.
-- **Demonstration record**: the collected reports and finding outcomes for the User Story 6
-  improvement.
+- **Demonstration record**: a short table of component, request, result, and what it
+  demonstrated.
 
 ## Success Criteria *(mandatory)*
 
 ### Measurable Outcomes
 
-- **SC-001**: After the feature:
-  - all existing backend tests pass, and the only new test is the demonstration test;
-  - the frontend type check and build pass;
-  - no application source file, business spec, or authorization matrix has changed.
-- **SC-002**: The demonstration record contains one impact report, at least one review report,
-  and at least one validation report, each from its own agent, plus an outcome for 100% of the
-  findings.
-- **SC-003**: During the demonstration, the analyst and the reviewer change 0 repository files,
-  and the validator changes 0 tracked files (`git status` before and after).
-- **SC-004**: The demonstration's final validation verdict is "ready", or "blocked by
-  environment" solely because of the documented WSL frontend-test limitation.
+- **SC-001**: No application source or test file changes (`backend/`, `frontend/`, and
+  `specs/001-clmp-mvp/` are unchanged from `main`).
+- **SC-002**: The short record has an entry for each of the six components.
+- **SC-003**: The analyst and reviewer demonstrations change 0 repository files.
+- **SC-004**: The validator demonstration runs only a small targeted check (not the full suites)
+  and classifies its outcome, including the WSL limitation if it occurs.
 - **SC-005**: A credential scan of the repository finds 0 credentials.
 - **SC-006**: 0 Spec Kit-managed files differ from `main`.
 - **SC-007**: The layer contains exactly 3 agents, 2 skills, and 1 integration.

@@ -47,3 +47,14 @@ constitution disagree, the constitution wins.
 - Do not add dependencies or infrastructure unless they solve a current approved requirement.
 - Run relevant tests and builds after changes.
 - Report deviations, blockers, and important assumptions clearly.
+
+## Agentic Workflow
+
+Project-owned agents and skills (see `docs/agentic-engineering.md`):
+
+- Before planning or implementing: `clmp-codebase-analyst` agent (read-only impact).
+- When implementing: `clmp-change-workflow` skill.
+- After a change: `clmp-code-reviewer` agent (independent, read-only review).
+- Before merge: `clmp-release-readiness` skill, which delegates checks to `clmp-test-validator`.
+- GitHub MCP (`.mcp.json`) is read-only context; its token comes from `CLMP_GITHUB_PAT`, never a file.
+- Never edit the Spec Kit-managed `speckit-*` skills or `.specify/` files.

@@ -21,19 +21,10 @@ export CLMP_GITHUB_PAT='<fine-grained read-only token>'   # e.g. in ~/.bashrc
 
 Open a new shell, start `claude`, and approve the `github` server when prompted (or use `/mcp`).
 
-## Story checks
+## Docs check (US7)
 
-| Story | Do this | Expect |
-|-------|---------|--------|
-| US1 Analyst | Ask Claude: "Use clmp-codebase-analyst: impact of adding a 'visa type' column to the submission list." | An impact report with all 9 sections and file paths (submission web/service/DTO, `frontend/src/pages/submissions/`, `US5SubmissionIT`). `git status` is unchanged. |
-| US1 out of scope | "Use clmp-codebase-analyst: impact of moving CLMP to PostgreSQL." | The report says a new approved spec is required. |
-| US2 Reviewer | "Use clmp-code-reviewer to review commit b46385e." | A review report: a Checked section, findings in the required columns (or "No findings."), and a verdict. `git status` is unchanged. |
-| US3 Validator | "Use clmp-test-validator to validate the working tree, full." | Every backend and frontend check runs, even though only `.claude/` and `specs/` changed (full/all overrides changed-path selection). A row for every check. On a `/mnt/c` checkout, the frontend tests are reported as an environment blocker with the workarounds, and the backend and frontend typecheck/build pass. No tracked file changes. |
-| US4 Skills | In a fresh session: "Add a missing test for an existing CLMP acceptance criterion", then "Is this ready to merge?" | `clmp-change-workflow` and then `clmp-release-readiness` are used; the readiness answer lists every constitution Quality Gate. The `/` menu shows `clmp-*` and `speckit-*` separately. |
-| US5 GitHub | `/mcp` → `github` → list tools. Then: "List open PRs and branches for this repository." | Only read tools are listed, and the PRs and branches are returned. |
-| US7 Docs | Using only `docs/agentic-engineering.md`, answer the five situations below. | At least 4 of 5 correct. |
-
-US7 situations and their answers:
+Using only `docs/agentic-engineering.md`, pick the right component for each situation. At least
+4 of 5 should be correct.
 
 1. Before planning a placement change, what is affected? → analyst
 2. I'm implementing a task from `tasks.md`. → change workflow
@@ -41,25 +32,18 @@ US7 situations and their answers:
 4. Can we merge? → readiness (→ validator)
 5. Which PRs are open? → GitHub MCP
 
-## Demonstration (US6)
+## Demonstration (US6): each component once
 
-Record everything in `specs/002-agentic-engineering/demo.md` ([data-model §3](./data-model.md#3-demonstration-record)).
+| Component | How to invoke | Example request |
+|-----------|---------------|-----------------|
+| `clmp-codebase-analyst` | "Use the clmp-codebase-analyst agent …" | Inspect the existing Consultants search and tell us which files and modules are involved. |
+| `clmp-code-reviewer` | "Use the clmp-code-reviewer agent …" | Review commit `b46385e` (the name-search fix) and report any concerns. |
+| `clmp-test-validator` | "Use the clmp-test-validator agent …" | Run one small targeted validation for that search fix (the typecheck and its two Vitest files only). |
+| `clmp-change-workflow` | `/clmp-change-workflow …` | Explain how you would approach a small CLMP change. |
+| `clmp-release-readiness` | `/clmp-release-readiness …` | List the checks you would choose for a small frontend-only change. |
+| GitHub MCP | "Use the github tools …" (needs `CLMP_GITHUB_PAT`) | Read PR #1 and summarize what it did. |
 
-| Step | Who | Action |
-|------|-----|--------|
-| 0 | Main agent | Baseline: `cd backend && ./mvnw verify`, then copy the final `Tests run:` line; `cd frontend && npm run typecheck && npm run build`. |
-| 1 | Analyst | "Use clmp-codebase-analyst: impact of adding an integration test that an unlinked RECRUITER (recruiter3) gets empty marketing, submission and placement lists (001 spec edge case; authorization-matrix 'Unlinked RECRUITER')." |
-| 2 | Main agent (using `clmp-change-workflow`) | Add the test only. No production code changes. |
-| 3 | Reviewer | "Use clmp-code-reviewer: review the uncommitted changes in the working tree" (or the commit). |
-| 4 | Main agent | Record each finding's outcome. Fix if needed, then re-review. |
-| 5 | Validator (via `clmp-release-readiness`) | "Is this change ready to merge?" |
-| 6 | Main agent | If the result is not ready: fix, then re-review and re-validate. Otherwise record the result. |
-
-Around steps 1, 3, and 5, run `git status --porcelain` before and after the agent, and record
-that nothing changed (SC-003).
-
-**Expect**: the new test passes; the backend test count is the baseline plus the new test(s); the
-frontend checks are "not run: no frontend change"; the verdict is `ready`.
+Note the result of each in `demo.md`.
 
 ## Final checks
 
@@ -67,13 +51,9 @@ frontend checks are "not run: no frontend change"; the verdict is `ready`.
 # Diffs compare the working tree against main, so committed AND uncommitted changes are covered.
 # New untracked files are listed by: git status --porcelain -- <paths>
 
-# SC-001: no application source/spec/matrix change; only the demo test added
-git diff --stat main -- backend/src/main frontend/src specs/001-clmp-mvp   # → empty
-git status --porcelain -- backend/src/main frontend/src specs/001-clmp-mvp  # → empty
-git diff --stat main -- backend/src/test; git status --porcelain -- backend/src/test   # → demo test only
-
-# SC-001: final frontend validation
-cd frontend && npm run typecheck && npm run build && cd ..
+# SC-001: no application source, test, or 001 spec change
+git diff --stat main -- backend frontend specs/001-clmp-mvp      # → empty
+git status --porcelain -- backend frontend specs/001-clmp-mvp     # → empty
 
 # SC-005: no credentials
 git grep -nE '(ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}' ; echo "exit=$? (1 = none)"

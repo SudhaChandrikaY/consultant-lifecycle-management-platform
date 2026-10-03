@@ -12,7 +12,7 @@ to …"). The main agent may also pick one based on its `description`.
 | Purpose | Impact before a change | Independent review of a change | Independent check selection and execution |
 | `tools` | `Read, Grep, Glob` | `Read, Grep, Glob, Bash`, plus the `mcp__github` tools | `Read, Grep, Glob, Bash` |
 | `skills` | `clmp-change-workflow` | `clmp-change-workflow`, `clmp-release-readiness` | `clmp-release-readiness` |
-| Bash use (by instruction) | — | Read-only `git` (`diff`, `log`, `show`, `status`, `merge-base`, `ls-files`, `blame`) | The README's build, test, and typecheck commands, plus `git diff --name-only` and `git status` |
+| Bash use (by instruction) | — | Read-only `git` (`diff`, `log`, `show`, `status`, `merge-base`, `ls-files`, `blame`, `rev-parse`) | The README's build, test, and typecheck commands, plus `git diff --name-only`, `git status`, `git rev-parse`, `java -version`, `node -v`, `npm -v`. No `npm ci`/`install`: a missing `node_modules` is an environment blocker |
 | Never | Write files | Edit files, run builds, write to GitHub | Edit code or tests, install tools, run perf unless asked |
 | Output | Impact report | Review report | Validation report |
 
@@ -31,7 +31,8 @@ to …"). The main agent may also pick one based on its `description`.
 the related tests. It flags out-of-scope or infrastructure work as needing a new spec.
 
 **Reviewer**:
-- Its input is a branch against its base (default `main`), a commit, or the working tree.
+- Its input is a branch against its base (default `main`), a commit, a pull request number (when
+  the GitHub integration is connected), or the working tree.
 - With no input, it reviews `git diff main...HEAD` plus any uncommitted changes.
 - It never reviews the whole repository by default.
 - It does not use commit messages or the implementer's explanation as evidence.

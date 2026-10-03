@@ -142,34 +142,16 @@ OS environment, never in the repository.
 **Rationale**: Without any write scope, the token cannot change anything on GitHub. It is the
 simplest least-privilege control.
 
-## R7. Demonstration change
+## R7. Demonstrations (learning scope)
 
-**Decision**: Add a backend integration test asserting that `recruiter3` (a RECRUITER account not
-linked to any recruiter profile) gets `200` with zero items from `GET /api/marketing-assignments`,
-`GET /api/submissions`, and `GET /api/placements`, while ADMIN gets more than zero items from the
-same lists.
+**Decision**: Demonstrate each component once on **existing** CLMP code, with no application
+change: the analyst on the Consultants search; the reviewer on the name-search fix `b46385e`; the
+validator with one targeted check of that fix; each skill explaining itself; the GitHub MCP
+reading PR #1.
 
-**Traceability**:
-- `specs/001-clmp-mvp/spec.md`, edge case: "A RECRUITER user not linked to a recruiter profile
-  sees an empty-state dashboard and lists…"
-- `contracts/authorization-matrix.md`, "Unlinked RECRUITER: the scope is empty. Lists come back
-  empty…"
-- FR-004, FR-015
-
-**Gap (verified 2026-10-03)**:
-- The `recruiterId() == null → cb.disjunction()` branch exists in three places:
-  - `marketing/service/MarketingSpecifications.java`
-  - `submission/service/SubmissionSpecifications.java`
-  - `placement/service/PlacementSpecifications.java`
-- Only `/api/consultants` (`US2ConsultantProfileIT.unlinkedRecruiterGetsAnEmptyPage`) and
-  `/api/dashboard` (`US7DashboardIT`) assert this for `recruiter3`.
-
-**Rationale**:
-- Genuine value: it closes a real gap in authorization coverage.
-- Test-only, so behavior is preserved.
-- Small.
-- It spans three modules and an ownership rule, so the analyst and the reviewer have real work to
-  do.
+**Rationale**: The feature is for learning the difference between subagents, skills, and MCP. A
+real change and its full review loop added cost without teaching anything extra. (An earlier
+plan, a recruiter3 list-scope test, was removed on 2026-10-03.)
 
 ## R8. Validator check selection (FR-030)
 

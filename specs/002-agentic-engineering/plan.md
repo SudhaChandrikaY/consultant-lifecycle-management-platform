@@ -21,8 +21,10 @@ This plan adds a small, project-owned agentic layer to CLMP, without changing CL
   The agents preload them, so each rule exists in one place.
 - **One read-only GitHub MCP integration** in `.mcp.json`: the hosted read-only endpoint, with a
   developer-supplied read-only token (`${CLMP_GITHUB_PAT}`).
-- **One real demonstration**: the missing unlinked-RECRUITER list-scope test, taken through the
-  full loop (analyze, implement, review, validate) and kept. The reports are recorded in `demo.md`.
+- **Simple demonstrations** (for learning): each component is used once on existing CLMP code,
+  for example analyzing the Consultants search, reviewing the name-search fix `b46385e`, a small
+  targeted validation, each skill explaining itself, and the MCP reading PR #1. These are noted in
+  a short `demo.md`. No application code or test is added.
 - **Docs**: `docs/agentic-engineering.md`, with pointers in `CLAUDE.md` and `README.md`.
 
 Research decisions are in [research.md](./research.md).
@@ -32,7 +34,6 @@ Research decisions are in [research.md](./research.md).
 **Language/Version**:
 - Markdown with YAML frontmatter (agents, skills, docs)
 - JSON (`.mcp.json`)
-- Java 21 (the demonstration test only)
 
 **Primary Dependencies**:
 - Claude Code ≥ 2.1, which provides subagents, skills, and MCP (2.1.288 installed)
@@ -43,8 +44,7 @@ Research decisions are in [research.md](./research.md).
 
 **Testing**:
 - The scripted checks in [quickstart.md](./quickstart.md)
-- Demonstration: JUnit 5 / MockMvc on the existing `IntegrationTestBase`
-- Regression: the existing backend `verify` and the frontend typecheck/build
+- No new application tests; the existing suites are unchanged
 
 **Target Platform**: Developer workstations running Claude Code. The current one is WSL2 with the
 repository on `/mnt/c`, where Vitest hits the known timeout.
@@ -61,7 +61,7 @@ repository on `/mnt/c`, where Vitest hits the known timeout.
 - Exactly 3 agents, 2 skills, and 1 integration
 
 **Scale/Scope**:
-- 9 new files: 3 agents, 2 skills, `.mcp.json`, 1 doc, 1 test class, and `demo.md`
+- 8 new files: 3 agents, 2 skills, `.mcp.json`, 1 doc, and `demo.md`
 - 2 edited files: `CLAUDE.md` and `README.md`
 
 ## Constitution Check
@@ -70,14 +70,14 @@ repository on `/mnt/c`, where Vitest hits the known timeout.
 
 | # | Principle | Compliance | Pre | Post |
 |---|-----------|------------|-----|------|
-| I | Spec-Driven Development | Approved spec. The demo test traces to 001 FR-004/FR-015, the edge case, and the matrix (R7). | ✅ | ✅ |
-| II | Working Vertical Slices | No application layer is built ahead of need. The demo is test-only for an existing slice. | ✅ | ✅ |
+| I | Spec-Driven Development | Approved spec. No application change. | ✅ | ✅ |
+| II | Working Vertical Slices | No application layer is built. The demonstrations use existing slices. | ✅ | ✅ |
 | III | Technology Stack | Unchanged. | ✅ | ✅ |
 | IV | Modular Monolith | No architecture change. The reviewer checks IV. | ✅ | ✅ |
 | V | Scope Discipline | Simplified to the requested minimum. No new dependencies, hooks, Docker, or extra integrations. | ✅ | ✅ |
 | VI | Buildable, Tested Quality | Existing builds and tests stay green. The validator puts VI into practice. | ✅ | ✅ |
 | VII | Backend-Enforced Security | No application change. GitHub is read-only at both the server and the token level, and no token is committed. | ✅ | ✅ |
-| VIII | Traceability & Human Review | `demo.md` keeps the agent reports verbatim, with the finding outcomes. The human reviewer stays accountable. | ✅ | ✅ |
+| VIII | Traceability & Human Review | The reviewer agent produces findings for the human reviewer, who stays accountable. `demo.md` notes each demonstration. | ✅ | ✅ |
 
 **Result**: PASS. No violations.
 
@@ -93,7 +93,7 @@ specs/002-agentic-engineering/
 │   ├── skill-contracts.md
 │   └── github-mcp-access.md
 ├── checklists/requirements.md
-├── demo.md          # Created during implementation (demonstration record)
+├── demo.md          # Short record of the six demonstrations
 └── tasks.md
 ```
 
@@ -113,9 +113,6 @@ specs/002-agentic-engineering/
 .mcp.json                              # NEW (read-only GitHub; token via ${CLMP_GITHUB_PAT})
 docs/agentic-engineering.md            # NEW
 CLAUDE.md, README.md                   # EDIT (pointers)
-
-backend/src/test/java/com/ensar/clmp/it/
-└── UnlinkedRecruiterScopeIT.java      # NEW (demonstration; final name per impact report)
 ```
 
 **Structure Decision**: Use Claude Code's native project locations, with a `clmp-` prefix to
@@ -125,8 +122,7 @@ separate the layer from the Spec Kit skills. No application source changes.
 
 1. **Restrictions are enforced by tool allowlists plus instructions, not a sandbox.** The
    analyst can't write at all. The reviewer and validator have no edit tools, but they do have a
-   shell, which is limited by instruction and checked with `git status` around each
-   demonstration run. This trade-off was accepted in the 2026-10-03 simplification.
+   shell, which is limited by instruction. Your normal Claude Code permission prompts still apply. This trade-off was accepted in the 2026-10-03 simplification.
 2. **The GitHub read-only endpoint path** follows GitHub's documentation. If it behaves
    differently, the documented `X-MCP-Readonly` header is used instead (research R5).
 3. **Frontend tests are blocked** on this `/mnt/c` checkout by the known Vitest limitation. The
